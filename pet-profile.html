@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bruno's profile — Paw Care</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ==================== TOP APP NAVBAR ==================== -->
+  <header class="app-topbar">
+    <a href="index.html" class="brand-logo">
+      <div class="logo-box">
+        <svg viewBox="0 0 40 40" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="40" height="40" rx="5" fill="#482B19"/>
+          <circle cx="14.5" cy="14.5" r="2.2" stroke="#FAF5EC" stroke-width="1.6"/>
+          <circle cx="20" cy="12" r="2.2" stroke="#FAF5EC" stroke-width="1.6"/>
+          <circle cx="25.5" cy="14.5" r="2.2" stroke="#FAF5EC" stroke-width="1.6"/>
+          <circle cx="11.5" cy="20" r="2" stroke="#FAF5EC" stroke-width="1.6"/>
+          <path d="M19.8 18.5C16.2 18.5 14 21.2 14.5 24.5C14.9 27 17.3 28 19.8 28C22.3 28 24.7 27 25.1 24.5C25.6 21.2 23.4 18.5 19.8 18.5Z" stroke="#FAF5EC" stroke-width="1.6"/>
+        </svg>
+      </div>
+      <span class="logo-text">Paw Care</span>
+    </a>
+
+    <div class="topbar-right">
+      <a href="#support" class="topbar-help">Help &amp; support</a>
+      <a href="reminders.html" class="topbar-bell" aria-label="Notifications">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+      </a>
+      <a href="my-profile.html" class="topbar-user">
+        <span class="user-avatar-sm">RP</span>
+        <span>Rohan Patil</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </a>
+    </div>
+  </header>
+
+  <!-- ==================== WORKSPACE LAYOUT ==================== -->
+  <div class="app-layout">
+    <!-- Left Sidebar -->
+    <aside class="app-sidebar">
+      <div class="sidebar-role-label">PET OWNER</div>
+      <nav class="sidebar-nav">
+        <a href="overview.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span>Overview</span>
+        </a>
+        <a href="pet-profile.html" class="sidebar-link active">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="4" r="2"></circle>
+            <circle cx="18" cy="8" r="2"></circle>
+            <circle cx="20" cy="16" r="2"></circle>
+            <path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"></path>
+          </svg>
+          <span>My pets</span>
+        </a>
+        <a href="health-records.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span>Health records</span>
+        </a>
+        <a href="reminders.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          <span>Reminders</span>
+        </a>
+        <a href="my-profile.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span>My profile</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-care-card">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6E5A4C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+        <h5>A little care, every day.</h5>
+        <p>We're here for every step of their health journey.</p>
+      </div>
+
+      <a href="signin.html" class="sidebar-signout">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+        <span>Sign out</span>
+      </a>
+      <div class="sidebar-motto">Love. Care. Heal.</div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <div class="page-breadcrumb">My pets / Edit profile</div>
+      <div class="page-header-row">
+        <div>
+          <h1 class="page-title">Bruno's profile</h1>
+          <p class="page-subtitle">The little details that help your veterinarian care for Bruno.</p>
+        </div>
+        <button type="button" class="btn btn-outline">+ Add another pet</button>
+      </div>
+
+      <div class="grid-profile-layout">
+        <!-- Left Photo Column -->
+        <div style="display: flex; flex-direction: column; gap: 18px;">
+          <div class="card">
+            <img src="assets/pdf_img_4.jpeg" alt="Bruno" style="width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 3px; margin-bottom: 14px;" />
+            <h2 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800; color: var(--color-heading); margin-bottom: 6px;">Bruno</h2>
+            <div style="margin-bottom: 14px;">
+              <span class="badge badge-sand">Dog · Labrador</span>
+            </div>
+            <button type="button" class="btn btn-outline btn-block">Change pet photo</button>
+          </div>
+
+          <div class="card-sand" style="display: flex; gap: 10px; align-items: flex-start; padding: 16px;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#482B19" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;">
+              <circle cx="11" cy="4" r="2"></circle>
+              <circle cx="18" cy="8" r="2"></circle>
+              <circle cx="20" cy="16" r="2"></circle>
+              <path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"></path>
+            </svg>
+            <div>
+              <h4 style="font-family: var(--font-heading); font-size: 0.8rem; font-weight: 800; color: var(--color-heading); margin-bottom: 3px;">A profile for every pet</h4>
+              <p style="font-size: 0.72rem; color: var(--color-body); line-height: 1.45;">
+                Adding a new companion? Choose Add another pet to start a separate health story.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Form Column -->
+        <div>
+          <!-- About your pet -->
+          <div class="card" style="margin-bottom: 18px;">
+            <h3 class="card-title" style="margin-bottom: 16px;">About your pet</h3>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label">Pet's name *</label>
+                <input type="text" class="form-control" value="Bruno" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Species *</label>
+                <select class="form-control">
+                  <option selected>Dog</option>
+                  <option>Cat</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Breed *</label>
+                <input type="text" class="form-control" value="Labrador" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Age *</label>
+                <input type="text" class="form-control" value="3 years" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Weight (kg) *</label>
+                <input type="text" class="form-control" value="28.4" />
+                <div class="form-helper">Measured 7 Oct 2026</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Sex</label>
+                <select class="form-control">
+                  <option selected>Male · Neutered</option>
+                  <option>Male · Intact</option>
+                  <option>Female · Spayed</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0; margin-top: 4px;">
+              <label class="form-label">Microchip number (optional)</label>
+              <input type="text" class="form-control" value="Not added" style="color: var(--color-muted);" />
+            </div>
+          </div>
+
+          <!-- Health notes -->
+          <div class="card">
+            <h3 class="card-title" style="margin-bottom: 16px;">Health notes</h3>
+            <div class="form-group">
+              <label class="form-label">Allergies</label>
+              <input type="text" class="form-control" value="Chicken protein — itching and skin irritation" />
+              <div class="form-helper">Include food, medicine or environmental allergies, if known.</div>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Past illness or anything else we should know</label>
+              <textarea class="form-control" rows="3">Mild ear infection treated in August. Currently completing an ear-drop course under Dr. Anita Rao’s care.</textarea>
+            </div>
+          </div>
+
+          <div class="form-actions-bar">
+            <a href="overview.html" class="btn btn-outline">Cancel</a>
+            <a href="overview.html" class="btn btn-primary">Save pet profile</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="workspace-footer">
+        <strong>Paw Care</strong> · Your pet's health information stays in your care circle.
+      </div>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

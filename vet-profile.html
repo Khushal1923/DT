@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dr. Anita Rao — Paw Care</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ==================== TOP APP NAVBAR ==================== -->
+  <header class="app-topbar">
+    <a href="index.html" class="brand-logo">
+      <div class="logo-box">
+        <svg viewBox="0 0 40 40" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="40" height="40" rx="5" fill="#482B19"/>
+          <circle cx="14.5" cy="14.5" r="2.2" stroke="#FAF5EC" stroke-width="1.6"/>
+          <circle cx="20" cy="12" r="2.2" stroke="#FAF5EC" stroke-width="1.6"/>
+          <circle cx="25.5" cy="14.5" r="2.2" stroke="#FAF5EC" stroke-width="1.6"/>
+          <circle cx="11.5" cy="20" r="2" stroke="#FAF5EC" stroke-width="1.6"/>
+          <path d="M19.8 18.5C16.2 18.5 14 21.2 14.5 24.5C14.9 27 17.3 28 19.8 28C22.3 28 24.7 27 25.1 24.5C25.6 21.2 23.4 18.5 19.8 18.5Z" stroke="#FAF5EC" stroke-width="1.6"/>
+        </svg>
+      </div>
+      <span class="logo-text">Paw Care</span>
+    </a>
+
+    <div class="topbar-right">
+      <a href="#support" class="topbar-help">Help &amp; support</a>
+      <a href="reminders.html" class="topbar-bell" aria-label="Notifications">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+      </a>
+      <a href="my-profile.html" class="topbar-user">
+        <span class="user-avatar-sm">RP</span>
+        <span>Rohan Patil</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </a>
+    </div>
+  </header>
+
+  <!-- ==================== WORKSPACE LAYOUT ==================== -->
+  <div class="app-layout">
+    <!-- Left Sidebar -->
+    <aside class="app-sidebar">
+      <div class="sidebar-role-label">PET OWNER</div>
+      <nav class="sidebar-nav">
+        <a href="overview.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span>Overview</span>
+        </a>
+        <a href="pet-profile.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="4" r="2"></circle>
+            <circle cx="18" cy="8" r="2"></circle>
+            <circle cx="20" cy="16" r="2"></circle>
+            <path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"></path>
+          </svg>
+          <span>My pets</span>
+        </a>
+        <a href="health-records.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span>Health records</span>
+        </a>
+        <a href="reminders.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          <span>Reminders</span>
+        </a>
+        <a href="my-profile.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span>My profile</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-care-card">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6E5A4C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+        <h5>A little care, every day.</h5>
+        <p>We're here for every step of their health journey.</p>
+      </div>
+
+      <a href="signin.html" class="sidebar-signout">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+        <span>Sign out</span>
+      </a>
+      <div class="sidebar-motto">Love. Care. Heal.</div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <div class="page-breadcrumb">Veterinarian profile / Dr. Anita Rao</div>
+      <div class="page-header-row">
+        <div>
+          <h1 class="page-title">Dr. Anita Rao</h1>
+          <p class="page-subtitle">General physician for dogs and cats at Companion Animal Clinic, Deccan, Pune.</p>
+        </div>
+        <a href="book-appointment.html" class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          <span>Book a visit</span>
+        </a>
+      </div>
+
+      <div class="grid-booking-layout">
+        <!-- Left Column -->
+        <div style="display: flex; flex-direction: column; gap: 18px;">
+          <!-- Doctor Info Card -->
+          <div class="card">
+            <h2 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; color: var(--color-heading); margin-bottom: 4px;">Dr. Anita Rao</h2>
+            <p style="font-size: 0.82rem; color: var(--color-body); margin-bottom: 4px;">General physician, dogs &amp; cats</p>
+            <p style="font-size: 0.76rem; color: var(--color-muted); margin-bottom: 12px;">Companion Animal Clinic · Deccan · 2.4 km</p>
+            <div style="margin-bottom: 16px;">
+              <span class="badge badge-verified">Verified veterinarian</span>
+            </div>
+            <div style="border-top: 1px solid #EFE7DC; padding-top: 14px; display: flex; align-items: center; justify-content: space-between;">
+              <span style="font-size: 0.78rem; font-weight: 700; color: var(--color-heading);">Next available: Fri, 9 Oct · 10:30 am</span>
+              <a href="#clinic" class="btn btn-outline btn-sm">View clinic details</a>
+            </div>
+          </div>
+
+          <!-- Services Card -->
+          <div class="card">
+            <h3 class="card-title" style="margin-bottom: 16px;">Services</h3>
+            <div class="icon-list">
+              <div class="icon-list-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"></path>
+                  <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"></path>
+                  <circle cx="20" cy="10" r="2"></circle>
+                </svg>
+                <span style="font-size: 0.8rem; color: var(--color-heading); font-weight: 500;">General check-ups and wellness visits</span>
+              </div>
+              <div class="icon-list-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+                <span style="font-size: 0.8rem; color: var(--color-heading); font-weight: 500;">Vaccination consultations and booster planning</span>
+              </div>
+              <div class="icon-list-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                <span style="font-size: 0.8rem; color: var(--color-heading); font-weight: 500;">Skin, ear and minor symptom follow-up care</span>
+              </div>
+              <div class="icon-list-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                </svg>
+                <span style="font-size: 0.8rem; color: var(--color-heading); font-weight: 500;">Prescription review and care plan updates</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column -->
+        <div style="display: flex; flex-direction: column; gap: 18px;">
+          <!-- Clinic Details Sand Card -->
+          <div id="clinic" class="card-sand">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+              <h3 class="card-title">Clinic details</h3>
+              <span class="badge badge-verified">Verified clinic</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.78rem; color: var(--color-body);">
+              <div style="font-weight: 600; color: var(--color-heading);">Companion Animal Clinic</div>
+              <div>Deccan, Pune</div>
+              <div>Mon–Sat · 9:00 am–7:00 pm</div>
+              <div>Consultation room, vaccination area, pharmacy support</div>
+            </div>
+          </div>
+
+          <!-- Availability Card -->
+          <div class="card">
+            <h3 class="card-title" style="margin-bottom: 14px;">Availability</h3>
+            <div class="icon-list" style="margin-bottom: 18px;">
+              <div class="icon-list-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <span style="font-size: 0.78rem; color: var(--color-body);">Mon–Sat · 9:00 am–7:00 pm</span>
+              </div>
+              <div class="icon-list-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                </svg>
+                <span style="font-size: 0.78rem; color: var(--color-body);">Next available: Fri, 9 Oct · 10:30 am</span>
+              </div>
+              <div class="icon-list-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 11 12 14 22 4"></polyline>
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                </svg>
+                <span style="font-size: 0.78rem; color: var(--color-body);">Booking requests are sent to the clinic for review</span>
+              </div>
+            </div>
+
+            <!-- Dark Brown CTA Box -->
+            <div style="background-color: var(--color-primary); border-radius: 4px; padding: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px;">
+              <div>
+                <h4 style="font-family: var(--font-heading); font-size: 0.9rem; font-weight: 800; color: #FAF5EC; margin-bottom: 4px;">Book a visit</h4>
+                <p style="font-size: 0.72rem; color: #D8CBB8; line-height: 1.4;">Request a consultation for Bruno with Dr. Anita Rao.</p>
+              </div>
+              <a href="book-appointment.html" class="btn" style="background-color: #FAF5EC; color: var(--color-primary); padding: 7px 14px; font-size: 0.75rem; font-weight: 700;">
+                <span>&rarr; Continue</span>
+              </a>
+            </div>
+
+            <div style="font-size: 0.7rem; color: var(--color-muted); line-height: 1.4;">
+              <strong>Paw Care</strong> · Your pet's health information stays in your care circle.
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

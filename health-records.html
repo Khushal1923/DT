@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bruno's health records — Paw Care</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ==================== TOP APP NAVBAR ==================== -->
+  <header class="app-topbar">
+    <a href="index.html" class="brand-logo">
+      <div class="logo-box">
+        <svg viewBox="0 0 40 40" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="40" height="40" rx="5" fill="#482B19"/>
+          <circle cx="14.5" cy="14.5" r="2.2" stroke="#FAF5EC" stroke-width="1.6"/>
+          <circle cx="20" cy="12" r="2.2" stroke="#FAF5EC" stroke-width="1.6"/>
+          <circle cx="25.5" cy="14.5" r="2.2" stroke="#FAF5EC" stroke-width="1.6"/>
+          <circle cx="11.5" cy="20" r="2" stroke="#FAF5EC" stroke-width="1.6"/>
+          <path d="M19.8 18.5C16.2 18.5 14 21.2 14.5 24.5C14.9 27 17.3 28 19.8 28C22.3 28 24.7 27 25.1 24.5C25.6 21.2 23.4 18.5 19.8 18.5Z" stroke="#FAF5EC" stroke-width="1.6"/>
+        </svg>
+      </div>
+      <span class="logo-text">Paw Care</span>
+    </a>
+
+    <div class="topbar-right">
+      <a href="#support" class="topbar-help">Help &amp; support</a>
+      <a href="reminders.html" class="topbar-bell" aria-label="Notifications">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+      </a>
+      <a href="my-profile.html" class="topbar-user">
+        <span class="user-avatar-sm">RP</span>
+        <span>Rohan Patil</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </a>
+    </div>
+  </header>
+
+  <!-- ==================== WORKSPACE LAYOUT ==================== -->
+  <div class="app-layout">
+    <!-- Left Sidebar -->
+    <aside class="app-sidebar">
+      <div class="sidebar-role-label">PET OWNER</div>
+      <nav class="sidebar-nav">
+        <a href="overview.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span>Overview</span>
+        </a>
+        <a href="pet-profile.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="4" r="2"></circle>
+            <circle cx="18" cy="8" r="2"></circle>
+            <circle cx="20" cy="16" r="2"></circle>
+            <path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"></path>
+          </svg>
+          <span>My pets</span>
+        </a>
+        <a href="health-records.html" class="sidebar-link active">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span>Health records</span>
+        </a>
+        <a href="reminders.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          <span>Reminders</span>
+        </a>
+        <a href="my-profile.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span>My profile</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-care-card">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6E5A4C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+        <h5>A little care, every day.</h5>
+        <p>We're here for every step of their health journey.</p>
+      </div>
+
+      <a href="signin.html" class="sidebar-signout">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+        <span>Sign out</span>
+      </a>
+      <div class="sidebar-motto">Love. Care. Heal.</div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <div class="page-breadcrumb">My pets / Health records</div>
+      <div class="page-header-row">
+        <div>
+          <h1 class="page-title">Bruno's health records</h1>
+          <p class="page-subtitle">Visits, diagnoses, prescriptions, vaccinations and documents for Bruno in one secure place.</p>
+        </div>
+        <button type="button" class="btn btn-outline" onclick="window.print()">Download summary</button>
+      </div>
+
+      <!-- Wide Pet Hero Card -->
+      <div class="card" style="margin-bottom: 18px;">
+        <div style="width: 100%; height: 150px; border-radius: 3px; overflow: hidden; margin-bottom: 14px;">
+          <img src="assets/pdf_img_4.jpeg" alt="Bruno" style="width: 100%; height: 100%; object-fit: cover; object-position: center 45%;" />
+        </div>
+        <h2 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800; color: var(--color-heading); margin-bottom: 6px;">Bruno</h2>
+        <div style="margin-bottom: 8px;">
+          <span class="badge badge-sand">Dog · Labrador</span>
+        </div>
+        <div style="font-size: 0.78rem; color: var(--color-body); margin-bottom: 3px;">3 years · 28.4 kg</div>
+        <div style="font-size: 0.75rem; color: var(--color-muted); margin-bottom: 14px;">Chicken protein allergy — itching and skin irritation</div>
+        <a href="pet-profile.html" class="btn btn-outline btn-block">Edit profile</a>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="role-tabs" style="margin-bottom: 18px; flex-wrap: wrap;">
+        <a href="#visit-history" class="role-tab active">Visit history</a>
+        <a href="#diagnoses" class="role-tab">Diagnoses</a>
+        <a href="#prescriptions" class="role-tab">Prescriptions</a>
+        <a href="#vaccinations" class="role-tab">Vaccinations</a>
+        <a href="#documents" class="role-tab">Documents</a>
+      </div>
+
+      <!-- Visit history Card -->
+      <div id="visit-history" class="card" style="margin-bottom: 16px;">
+        <div class="card-title-row" style="margin-bottom: 12px;">
+          <h3 class="card-title">Visit history</h3>
+          <a href="#visit-history" class="card-link">View all &rarr;</a>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>DATE &amp; TIME</th>
+              <th>VETERINARIAN</th>
+              <th>REASON</th>
+              <th>STATUS</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <span class="td-bold">7 Oct 2026</span>
+                <span class="td-sub">10:30 am</span>
+              </td>
+              <td>
+                <a href="vet-profile.html" class="td-bold">Dr. Anita Rao</a>
+                <span class="td-sub">Companion Animal Clinic</span>
+              </td>
+              <td>Ear inflammation improving</td>
+              <td><span class="badge badge-verified">Completed</span></td>
+              <td style="text-align: right;"><a href="vet-consultation.html" class="card-link">View visit</a></td>
+            </tr>
+            <tr>
+              <td>
+                <span class="td-bold">28 Aug 2026</span>
+                <span class="td-sub">11:00 am</span>
+              </td>
+              <td>
+                <a href="vet-profile.html" class="td-bold">Dr. Anita Rao</a>
+                <span class="td-sub">Companion Animal Clinic</span>
+              </td>
+              <td>Mild ear infection</td>
+              <td><span class="badge badge-verified">Completed</span></td>
+              <td style="text-align: right;"><a href="vet-consultation.html" class="card-link">View visit</a></td>
+            </tr>
+            <tr>
+              <td>
+                <span class="td-bold">21 Mar 2026</span>
+                <span class="td-sub">09:30 am</span>
+              </td>
+              <td>
+                <a href="vet-profile.html" class="td-bold">Dr. Meera Kulkarni</a>
+                <span class="td-sub">Companion Animal Clinic</span>
+              </td>
+              <td>Annual health check</td>
+              <td><span class="badge badge-verified">Completed</span></td>
+              <td style="text-align: right;"><a href="vet-consultation.html" class="card-link">View visit</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Diagnoses Card -->
+      <div id="diagnoses" class="card" style="margin-bottom: 16px;">
+        <h3 class="card-title" style="margin-bottom: 14px;">Diagnoses</h3>
+        <div class="icon-list">
+          <div class="icon-list-item" style="padding-bottom: 10px; border-bottom: 1px solid #EFE7DC;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"></path>
+              <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"></path>
+              <circle cx="20" cy="10" r="2"></circle>
+            </svg>
+            <div>
+              <div class="history-title">Ear inflammation improving</div>
+              <div class="history-sub">7 Oct 2026 · Dr. Anita Rao</div>
+            </div>
+          </div>
+          <div class="icon-list-item" style="padding-bottom: 10px; border-bottom: 1px solid #EFE7DC;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+            <div>
+              <div class="history-title">Mild ear infection</div>
+              <div class="history-sub">28 Aug 2026 · Dr. Anita Rao</div>
+            </div>
+          </div>
+          <div class="icon-list-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"></path>
+              <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"></path>
+              <circle cx="20" cy="10" r="2"></circle>
+            </svg>
+            <div>
+              <div class="history-title">Annual health check</div>
+              <div class="history-sub">21 Mar 2026 · Dr. Meera Kulkarni</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prescriptions Card -->
+      <div id="prescriptions" class="card" style="margin-bottom: 16px;">
+        <h3 class="card-title" style="margin-bottom: 14px;">Prescriptions</h3>
+        <div class="icon-list">
+          <div class="icon-list-item" style="padding-bottom: 10px; border-bottom: 1px solid #EFE7DC;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m18 2 4 4"></path>
+              <path d="m17 7 3-3"></path>
+              <path d="M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"></path>
+            </svg>
+            <div>
+              <div class="history-title">Ear drops</div>
+              <div class="history-sub">7 Oct 2026 · Prescription updated by Dr. Anita Rao</div>
+            </div>
+          </div>
+          <div class="icon-list-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m18 2 4 4"></path>
+              <path d="m17 7 3-3"></path>
+              <path d="M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"></path>
+            </svg>
+            <div>
+              <div class="history-title">Ear drops</div>
+              <div class="history-sub">28 Aug 2026 · 7-day course prescribed by Dr. Anita Rao</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vaccinations Card -->
+      <div id="vaccinations" class="card" style="margin-bottom: 16px;">
+        <h3 class="card-title" style="margin-bottom: 14px;">Vaccinations</h3>
+        <div class="icon-list">
+          <div class="icon-list-item" style="padding-bottom: 10px; border-bottom: 1px solid #EFE7DC;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m18 2 4 4"></path>
+              <path d="m17 7 3-3"></path>
+              <path d="M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"></path>
+            </svg>
+            <div>
+              <div class="history-title">Rabies booster</div>
+              <div class="history-sub">Due 9 Oct 2026 · Booking awaiting acceptance</div>
+            </div>
+          </div>
+          <div class="icon-list-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m18 2 4 4"></path>
+              <path d="m17 7 3-3"></path>
+              <path d="M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"></path>
+            </svg>
+            <div>
+              <div class="history-title">DHPP</div>
+              <div class="history-sub">Next due 21 Dec 2026</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Documents Card -->
+      <div id="documents" class="card">
+        <h3 class="card-title" style="margin-bottom: 14px;">Documents</h3>
+        <div class="icon-list">
+          <div class="icon-list-item" style="padding-bottom: 10px; border-bottom: 1px solid #EFE7DC;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+            <div>
+              <div class="history-title">Visit summary — 7 Oct 2026</div>
+              <div class="history-sub">PDF · Dr. Anita Rao</div>
+            </div>
+          </div>
+          <div class="icon-list-item" style="padding-bottom: 10px; border-bottom: 1px solid #EFE7DC;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+            <div>
+              <div class="history-title">Prescription note — 28 Aug 2026</div>
+              <div class="history-sub">PDF · Dr. Anita Rao</div>
+            </div>
+          </div>
+          <div class="icon-list-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+            <div>
+              <div class="history-title">Vaccination record</div>
+              <div class="history-sub">PDF · Companion Animal Clinic</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="workspace-footer">
+        <strong>Paw Care</strong> · Your pet's health information stays in your care circle.
+      </div>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
