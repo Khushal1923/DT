@@ -145,7 +145,7 @@
     ],
     medical_records: [
       {
-        id: 'm1111111-1111-1111-1111-111111111111',
+        id: 'c1111111-1111-1111-1111-111111111111',
         pet_id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
         vet_id: '11111111-1111-1111-1111-111111111111',
         consultation_date: '7 Oct 2026',
@@ -168,7 +168,7 @@
         status: 'Completed'
       },
       {
-        id: 'm2222222-2222-2222-2222-222222222222',
+        id: 'c2222222-2222-2222-2222-222222222222',
         pet_id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
         vet_id: '11111111-1111-1111-1111-111111111111',
         consultation_date: '28 Aug 2026',
@@ -188,7 +188,7 @@
         status: 'Completed'
       },
       {
-        id: 'm3333333-3333-3333-3333-333333333333',
+        id: 'c3333333-3333-3333-3333-333333333333',
         pet_id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
         vet_id: '33333333-3333-3333-3333-333333333333',
         consultation_date: '21 Mar 2026',
@@ -210,7 +210,7 @@
     ],
     reminders: [
       {
-        id: 'r1111111-1111-1111-1111-111111111111',
+        id: 'd1111111-1111-1111-1111-111111111111',
         pet_id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
         title: 'Ear drops',
         description: 'Tonight, 8:00 pm · 3 drops in affected ear',
@@ -222,7 +222,7 @@
         is_active: true
       },
       {
-        id: 'r2222222-2222-2222-2222-222222222222',
+        id: 'd2222222-2222-2222-2222-222222222222',
         pet_id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
         title: 'Follow-up visit',
         description: '14 Oct 2026, 11:00 am · Dr. Anita Rao',
@@ -234,7 +234,7 @@
         is_active: true
       },
       {
-        id: 'r3333333-3333-3333-3333-333333333333',
+        id: 'd3333333-3333-3333-3333-333333333333',
         pet_id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
         title: 'DHPP vaccination',
         description: 'Next due 21 Dec 2026',
@@ -246,7 +246,7 @@
         is_active: true
       },
       {
-        id: 'r4444444-4444-4444-4444-444444444444',
+        id: 'd4444444-4444-4444-4444-444444444444',
         pet_id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
         title: 'Rabies booster',
         description: 'Due 9 Oct 2026. Your vaccination request is awaiting Dr. Anita Rao’s acceptance.',

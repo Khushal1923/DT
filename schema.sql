@@ -3,8 +3,8 @@
 -- Run this in your Supabase Project: SQL Editor -> New Query -> Run
 -- ==========================================================================
 
--- 1. Enable UUID Extension
-create extension if not exists "uuid-ossp";
+-- 1. Enable pgcrypto / uuid extensions (native in Supabase)
+create extension if not exists "pgcrypto";
 
 -- 2. Create User Profiles Table (Linked to auth.users)
 create table if not exists public.profiles (
@@ -26,7 +26,7 @@ create table if not exists public.profiles (
 
 -- 3. Create Veterinarians & Clinics Table
 create table if not exists public.vets (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid references public.profiles(id) on delete set null,
   name text not null,
   specialty text not null,
@@ -50,7 +50,7 @@ create table if not exists public.vets (
 
 -- 4. Create Pets Table
 create table if not exists public.pets (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   owner_id uuid references public.profiles(id) on delete cascade,
   name text not null,
   species text not null default 'Dog',
@@ -61,7 +61,7 @@ create table if not exists public.pets (
   sex text default 'Male · Neutered',
   microchip text default 'Not added',
   allergies text default 'Chicken protein — itching and skin irritation',
-  past_illness text default 'Mild ear infection treated in August. Currently completing an ear-drop course under Dr. Anita Rao’s care.',
+  past_illness text default 'Mild ear infection treated in August. Currently completing an ear-drop course under Dr. Anita Rao''s care.',
   photo_url text default 'assets/pdf_img_4.jpeg',
   created_at timestamptz default now(),
   updated_at timestamptz default now()
@@ -69,7 +69,7 @@ create table if not exists public.pets (
 
 -- 5. Create Appointments / Bookings Table
 create table if not exists public.appointments (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   owner_id uuid references public.profiles(id) on delete cascade,
   pet_id uuid references public.pets(id) on delete cascade,
   vet_id uuid references public.vets(id) on delete set null,
@@ -84,7 +84,7 @@ create table if not exists public.appointments (
 
 -- 6. Create Medical Records & Consultations Table
 create table if not exists public.medical_records (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   pet_id uuid references public.pets(id) on delete cascade,
   vet_id uuid references public.vets(id) on delete set null,
   consultation_date text not null,
@@ -103,7 +103,7 @@ create table if not exists public.medical_records (
 
 -- 7. Create Reminders Table
 create table if not exists public.reminders (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   owner_id uuid references public.profiles(id) on delete cascade,
   pet_id uuid references public.pets(id) on delete cascade,
   title text not null,
@@ -119,7 +119,7 @@ create table if not exists public.reminders (
 
 -- 8. Create Notification Preferences Table
 create table if not exists public.notification_preferences (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   owner_id uuid references public.profiles(id) on delete cascade unique,
   email_reminders boolean default true,
   sms_reminders boolean default true,
@@ -143,7 +143,23 @@ alter table public.medical_records enable row level security;
 alter table public.reminders enable row level security;
 alter table public.notification_preferences enable row level security;
 
--- Public/Demo read access: allows viewing vets, initial pets, and records
+-- Drop existing policies if any (ensures rerunning never fails)
+drop policy if exists "Allow public read access to vets" on public.vets;
+drop policy if exists "Allow public read access to pets" on public.pets;
+drop policy if exists "Allow public read access to profiles" on public.profiles;
+drop policy if exists "Allow public read access to appointments" on public.appointments;
+drop policy if exists "Allow public read access to medical records" on public.medical_records;
+drop policy if exists "Allow public read access to reminders" on public.reminders;
+drop policy if exists "Allow public read access to notification preferences" on public.notification_preferences;
+
+drop policy if exists "Allow full access for authenticated users to own profile" on public.profiles;
+drop policy if exists "Allow owners to insert/update pets" on public.pets;
+drop policy if exists "Allow creating and updating appointments" on public.appointments;
+drop policy if exists "Allow creating and updating medical records" on public.medical_records;
+drop policy if exists "Allow updating notification preferences" on public.notification_preferences;
+drop policy if exists "Allow managing reminders" on public.reminders;
+
+-- Create read access policies
 create policy "Allow public read access to vets" on public.vets for select using (true);
 create policy "Allow public read access to pets" on public.pets for select using (true);
 create policy "Allow public read access to profiles" on public.profiles for select using (true);
@@ -172,7 +188,7 @@ create policy "Allow managing reminders" on public.reminders
   for all using (true) with check (true);
 
 -- ==========================================================================
--- SEED DATA (Matches all 12 PDF screens accurately)
+-- SEED DATA (Valid Hex UUIDs matching all 12 PDF screens accurately)
 -- ==========================================================================
 
 -- Seed Vets
@@ -196,7 +212,7 @@ values (
   'Male · Neutered',
   'Not added',
   'Chicken protein — itching and skin irritation',
-  'Mild ear infection treated in August. Currently completing an ear-drop course under Dr. Anita Rao’s care.',
+  'Mild ear infection treated in August. Currently completing an ear-drop course under Dr. Anita Rao''s care.',
   'assets/pdf_img_4.jpeg'
 ) on conflict (id) do nothing;
 
@@ -227,11 +243,11 @@ values
   )
 on conflict (id) do nothing;
 
--- Seed Medical Records
+-- Seed Medical Records (UUID hex prefix c)
 insert into public.medical_records (id, pet_id, vet_id, consultation_date, consultation_time, reason, chief_complaint, diagnosis_notes, owner_communication, prescriptions, vaccinations, follow_up_appointment, documents, status)
 values 
   (
-    'm1111111-1111-1111-1111-111111111111',
+    'c1111111-1111-1111-1111-111111111111',
     'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
     '11111111-1111-1111-1111-111111111111',
     '7 Oct 2026',
@@ -247,7 +263,7 @@ values
     'Completed'
   ),
   (
-    'm2222222-2222-2222-2222-222222222222',
+    'c2222222-2222-2222-2222-222222222222',
     'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
     '11111111-1111-1111-1111-111111111111',
     '28 Aug 2026',
@@ -263,7 +279,7 @@ values
     'Completed'
   ),
   (
-    'm3333333-3333-3333-3333-333333333333',
+    'c3333333-3333-3333-3333-333333333333',
     'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
     '33333333-3333-3333-3333-333333333333',
     '21 Mar 2026',
@@ -280,11 +296,11 @@ values
   )
 on conflict (id) do nothing;
 
--- Seed Reminders
+-- Seed Reminders (UUID hex prefix d)
 insert into public.reminders (id, pet_id, title, description, due_date, due_time, badge_text, badge_type, reminder_type)
 values 
   (
-    'r1111111-1111-1111-1111-111111111111',
+    'd1111111-1111-1111-1111-111111111111',
     'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
     'Ear drops',
     'Tonight, 8:00 pm · 3 drops in affected ear',
@@ -295,7 +311,7 @@ values
     'medication'
   ),
   (
-    'r2222222-2222-2222-2222-222222222222',
+    'd2222222-2222-2222-2222-222222222222',
     'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
     'Follow-up visit',
     '14 Oct 2026, 11:00 am · Dr. Anita Rao',
@@ -306,7 +322,7 @@ values
     'appointment'
   ),
   (
-    'r3333333-3333-3333-3333-333333333333',
+    'd3333333-3333-3333-3333-333333333333',
     'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
     'DHPP vaccination',
     'Next due 21 Dec 2026',
@@ -317,10 +333,10 @@ values
     'vaccine'
   ),
   (
-    'r4444444-4444-4444-4444-444444444444',
+    'd4444444-4444-4444-4444-444444444444',
     'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
     'Rabies booster',
-    'Due 9 Oct 2026. Your vaccination request is awaiting Dr. Anita Rao’s acceptance.',
+    'Due 9 Oct 2026. Your vaccination request is awaiting Dr. Anita Rao''s acceptance.',
     '9 Oct 2026',
     null,
     'Due in 2 days',
