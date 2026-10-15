@@ -318,6 +318,175 @@ async function handlePreferenceToggle(prefKey, toggleEl) {
   }
 }
 
+// Dynamic Hydration of Pet & Profile data across Workspace Pages
+async function hydrateWorkspaceData() {
+  if (!window.PawCareSupabase) return;
+
+  try {
+    // 1. Hydrate Pet Data (Overview, Health Records, Pet Profile)
+    const pet = await window.PawCareSupabase.pets.get('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb');
+    if (pet) {
+      // Pet Profile Form (pet-profile.html)
+      if (document.getElementById('pet-name')) document.getElementById('pet-name').value = pet.name || '';
+      if (document.getElementById('pet-breed')) document.getElementById('pet-breed').value = pet.breed || '';
+      if (document.getElementById('pet-age')) document.getElementById('pet-age').value = pet.age || '';
+      if (document.getElementById('pet-weight')) document.getElementById('pet-weight').value = pet.weight || '';
+      if (document.getElementById('pet-allergies')) document.getElementById('pet-allergies').value = pet.allergies || '';
+      if (document.getElementById('pet-past-illness')) document.getElementById('pet-past-illness').value = pet.past_illness || '';
+
+      // Overview Pet Summary Card (overview.html)
+      const overviewName = document.querySelector('.pet-summary-name');
+      if (overviewName) overviewName.textContent = pet.name || 'Bruno';
+      const overviewMeta = document.querySelector('.pet-summary-meta');
+      if (overviewMeta) overviewMeta.textContent = `${pet.species || 'Dog'} · ${pet.breed || 'Labrador'} · ${pet.age || '3 years'}`;
+      const overviewWeight = document.querySelector('.pet-stats-row .stat-value');
+      if (overviewWeight) overviewWeight.textContent = `${pet.weight || '28.4'} kg`;
+
+      // Health Records Hero Card (health-records.html)
+      const recordName = document.querySelector('.pet-hero-name');
+      if (recordName) recordName.textContent = pet.name || 'Bruno';
+      const recordBadge = document.querySelector('.pet-hero-name-row .badge');
+      if (recordBadge) recordBadge.textContent = `${pet.species || 'Dog'} · ${pet.breed || 'Labrador'}`;
+      const recordMeta = document.querySelector('.pet-hero-meta');
+      if (recordMeta) recordMeta.textContent = `${pet.age || '3 years'} · ${pet.weight || '28.4'} kg`;
+      const recordAllergy = document.querySelector('.pet-hero-allergy span');
+      if (recordAllergy && pet.allergies) {
+        recordAllergy.textContent = pet.allergies;
+      }
+    }
+  } catch (e) {
+    console.warn('Could not hydrate pet details', e);
+  }
+
+  try {
+    // 2. Hydrate User Profile Form (my-profile.html)
+    if (document.getElementById('profile-first-name')) {
+      const user = window.PawCareSupabase.auth.getCurrentUser();
+      const profile = await window.PawCareSupabase.profiles.get(user?.id || '00000000-0000-0000-0000-000000000001');
+      if (profile) {
+        if (document.getElementById('profile-first-name')) document.getElementById('profile-first-name').value = profile.first_name || '';
+        if (document.getElementById('profile-last-name')) document.getElementById('profile-last-name').value = profile.last_name || '';
+        if (document.getElementById('profile-email')) document.getElementById('profile-email').value = profile.email || '';
+        if (document.getElementById('profile-phone')) document.getElementById('profile-phone').value = profile.phone || '';
+        if (document.getElementById('profile-address')) document.getElementById('profile-address').value = profile.address || '';
+        if (document.getElementById('profile-city')) document.getElementById('profile-city').value = profile.city || '';
+        if (document.getElementById('profile-postal')) document.getElementById('profile-postal').value = profile.postal_code || '';
+      }
+    }
+  } catch (e) {
+    console.warn('Could not hydrate user profile', e);
+  }
+
+  // 3. Topbar User Name across all workspace pages
+  try {
+    const user = window.PawCareSupabase.auth.getCurrentUser();
+    if (user && user.first_name) {
+      const userSpan = document.querySelector('.topbar-user span:not(.user-avatar-sm)');
+      const avatarSpan = document.querySelector('.topbar-user .user-avatar-sm');
+      if (userSpan) userSpan.textContent = `${user.first_name} ${user.last_name || ''}`;
+      if (avatarSpan) {
+        avatarSpan.textContent = `${user.first_name[0] || 'R'}${user.last_name ? user.last_name[0] : 'P'}`;
+      }
+    }
+  } catch (e) {
+    console.warn('Could not update topbar user name', e);
+  }
+
+  // 4. Wire Notification Preferences toggles if on reminders page
+  const prefToggles = document.querySelectorAll('.pref-row .toggle-switch');
+  if (prefToggles && prefToggles.length >= 4) {
+    const prefKeys = ['email_reminders', 'sms_reminders', 'push_notifications', 'weekly_digest'];
+    prefToggles.forEach((tog, idx) => {
+      tog.removeAttribute('onclick');
+      tog.onclick = () => handlePreferenceToggle(prefKeys[idx], tog);
+    });
+  }
+
+  // 5. Wire Health records filter tabs
+  const filterTabs = document.querySelectorAll('.role-tabs a.role-tab');
+  filterTabs.forEach(tab => {
+    tab.onclick = function (ev) {
+      filterTabs.forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+    };
+  });
+}
+
+// Seamless Client-Side Navigation for Workspace Pages
+function initSeamlessNavigation() {
+  document.addEventListener('click', async (e) => {
+    const link = e.target.closest('.sidebar-link');
+    if (!link) return;
+
+    const href = link.getAttribute('href');
+    if (!href || href.startsWith('#') || href.startsWith('http') || href.startsWith('mailto')) return;
+
+    const workspacePages = [
+      'overview.html',
+      'pet-profile.html',
+      'health-records.html',
+      'reminders.html',
+      'my-profile.html',
+      'book-appointment.html',
+      'vet-overview.html',
+      'vet-consultation.html'
+    ];
+
+    const targetBase = href.split('?')[0].split('#')[0];
+    if (!workspacePages.includes(targetBase)) return;
+
+    // Check if running on http/https (local file:// disallows fetch due to browser CORS policies)
+    if (window.location.protocol === 'file:') {
+      return; // allow standard browser navigation
+    }
+
+    e.preventDefault();
+
+    try {
+      const response = await fetch(href);
+      if (!response.ok) throw new Error('Fetch failed');
+      const htmlText = await response.text();
+
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlText, 'text/html');
+
+      const newMain = doc.querySelector('.app-main');
+      const currentMain = document.querySelector('.app-main');
+
+      if (newMain && currentMain) {
+        currentMain.innerHTML = newMain.innerHTML;
+
+        // Update active link in sidebar
+        document.querySelectorAll('.sidebar-link').forEach(l => {
+          l.classList.remove('active');
+          if (l.getAttribute('href') === href || l.getAttribute('href') === targetBase) {
+            l.classList.add('active');
+          }
+        });
+
+        if (doc.title) document.title = doc.title;
+        window.history.pushState({ url: href }, '', href);
+
+        // Hydrate data into newly swapped content
+        await hydrateWorkspaceData();
+
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      } else {
+        window.location.href = href;
+      }
+    } catch (err) {
+      console.warn('Seamless navigation fallback to native reload:', err);
+      window.location.href = href;
+    }
+  });
+
+  window.addEventListener('popstate', () => {
+    if (window.location.protocol !== 'file:') {
+      window.location.reload();
+    }
+  });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   // 1. Check URL query parameter for ?role=vet on Sign In page
   const params = new URLSearchParams(window.location.search);
@@ -344,16 +513,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
-  // 3. Filter tabs active state on Health Records page
-  const filterTabs = document.querySelectorAll('.role-tabs a.role-tab');
-  filterTabs.forEach(tab => {
-    tab.addEventListener('click', function () {
-      filterTabs.forEach(t => t.classList.remove('active'));
-      this.classList.add('active');
-    });
-  });
-
-  // 4. Attach Sign Out to sidebar signout links
+  // 3. Attach Sign Out to sidebar signout links
   const signoutLinks = document.querySelectorAll('.sidebar-signout');
   signoutLinks.forEach(link => {
     link.addEventListener('click', (e) => {
@@ -366,65 +526,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
-  // 5. Hydrate Pet Profile form if present
-  if (document.getElementById('pet-name') && window.PawCareSupabase) {
-    try {
-      const pet = await window.PawCareSupabase.pets.get('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb');
-      if (pet) {
-        if (document.getElementById('pet-name')) document.getElementById('pet-name').value = pet.name || '';
-        if (document.getElementById('pet-breed')) document.getElementById('pet-breed').value = pet.breed || '';
-        if (document.getElementById('pet-age')) document.getElementById('pet-age').value = pet.age || '';
-        if (document.getElementById('pet-weight')) document.getElementById('pet-weight').value = pet.weight || '';
-        if (document.getElementById('pet-allergies')) document.getElementById('pet-allergies').value = pet.allergies || '';
-        if (document.getElementById('pet-past-illness')) document.getElementById('pet-past-illness').value = pet.past_illness || '';
-      }
-    } catch (e) {
-      console.warn('Could not hydrate pet profile', e);
-    }
-  }
+  // 4. Hydrate Workspace Data across all pages
+  await hydrateWorkspaceData();
 
-  // 6. Hydrate User Profile form if present
-  if (document.getElementById('profile-first-name') && window.PawCareSupabase) {
-    try {
-      const user = window.PawCareSupabase.auth.getCurrentUser();
-      const profile = await window.PawCareSupabase.profiles.get(user?.id || '00000000-0000-0000-0000-000000000001');
-      if (profile) {
-        if (document.getElementById('profile-first-name')) document.getElementById('profile-first-name').value = profile.first_name || '';
-        if (document.getElementById('profile-last-name')) document.getElementById('profile-last-name').value = profile.last_name || '';
-        if (document.getElementById('profile-email')) document.getElementById('profile-email').value = profile.email || '';
-        if (document.getElementById('profile-phone')) document.getElementById('profile-phone').value = profile.phone || '';
-        if (document.getElementById('profile-address')) document.getElementById('profile-address').value = profile.address || '';
-        if (document.getElementById('profile-city')) document.getElementById('profile-city').value = profile.city || '';
-        if (document.getElementById('profile-postal')) document.getElementById('profile-postal').value = profile.postal_code || '';
-      }
-    } catch (e) {
-      console.warn('Could not hydrate user profile', e);
-    }
-  }
-
-  // 7. Wire Notification Preferences toggles if on reminders page
-  const prefToggles = document.querySelectorAll('.pref-row .toggle-switch');
-  if (prefToggles && prefToggles.length >= 4) {
-    const prefKeys = ['email_reminders', 'sms_reminders', 'push_notifications', 'weekly_digest'];
-    prefToggles.forEach((tog, idx) => {
-      // Remove any inline onclick to avoid double toggling
-      tog.removeAttribute('onclick');
-      tog.addEventListener('click', () => {
-        handlePreferenceToggle(prefKeys[idx], tog);
-      });
-    });
-  }
-
-  // 8. Update topbar user name if session exists
-  if (window.PawCareSupabase) {
-    const user = window.PawCareSupabase.auth.getCurrentUser();
-    if (user && user.first_name) {
-      const userSpan = document.querySelector('.topbar-user span:not(.user-avatar-sm)');
-      const avatarSpan = document.querySelector('.topbar-user .user-avatar-sm');
-      if (userSpan) userSpan.textContent = `${user.first_name} ${user.last_name || ''}`;
-      if (avatarSpan) {
-        avatarSpan.textContent = `${user.first_name[0] || 'R'}${user.last_name ? user.last_name[0] : 'P'}`;
-      }
-    }
-  }
+  // 5. Initialize Seamless Client-Side Navigation
+  initSeamlessNavigation();
 });

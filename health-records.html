@@ -121,18 +121,31 @@
         <button type="button" class="btn btn-outline" onclick="window.print()">Download summary</button>
       </div>
 
-      <!-- Wide Pet Hero Card -->
-      <div class="card" style="margin-bottom: 18px;">
-        <div style="width: 100%; height: 150px; border-radius: 3px; overflow: hidden; margin-bottom: 14px;">
-          <img src="assets/pdf_img_4.jpeg" alt="Bruno" style="width: 100%; height: 100%; object-fit: cover; object-position: center 45%;" />
+      <!-- Pet Record Hero Card (Square Photo + Square Info) -->
+      <div class="card pet-records-hero-card" style="margin-bottom: 22px;">
+        <div class="pet-records-hero-layout">
+          <div class="pet-hero-photo-wrap">
+            <img src="assets/pdf_img_4.jpeg" alt="Bruno" class="pet-hero-square-img" />
+          </div>
+          <div class="pet-hero-info-wrap">
+            <div class="pet-hero-name-row">
+              <h2 class="pet-hero-name">Bruno</h2>
+              <span class="badge badge-sand">Dog · Labrador</span>
+            </div>
+            <div class="pet-hero-meta">3 years · 28.4 kg</div>
+            <div class="pet-hero-allergy">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7C4D19" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <span>Chicken protein allergy — itching and skin irritation</span>
+            </div>
+            <div class="pet-hero-action">
+              <a href="pet-profile.html" class="btn btn-outline btn-sm">Edit profile</a>
+            </div>
+          </div>
         </div>
-        <h2 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800; color: var(--color-heading); margin-bottom: 6px;">Bruno</h2>
-        <div style="margin-bottom: 8px;">
-          <span class="badge badge-sand">Dog · Labrador</span>
-        </div>
-        <div style="font-size: 0.78rem; color: var(--color-body); margin-bottom: 3px;">3 years · 28.4 kg</div>
-        <div style="font-size: 0.75rem; color: var(--color-muted); margin-bottom: 14px;">Chicken protein allergy — itching and skin irritation</div>
-        <a href="pet-profile.html" class="btn btn-outline btn-block">Edit profile</a>
       </div>
 
       <!-- Filter Tabs -->
