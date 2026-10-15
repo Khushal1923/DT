@@ -6,8 +6,8 @@
 (function () {
   // --- 1. DEFAULT CONFIGURATION ---
   const DEFAULT_CONFIG = {
-    url: localStorage.getItem('paw_care_supabase_url') || '',
-    anonKey: localStorage.getItem('paw_care_supabase_anon_key') || ''
+    url: 'https://fecqpggriyvmoxsebxex.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlY3FwZ2dyaXl2bW94c2VieGV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwNTM4MzYsImV4cCI6MjEwNzYyOTgzNn0.jR_dxBcq9mMqul_36xPTZHgOpt9h-HkvO5D82TC3FWU'
   };
 
   // --- 2. SEED DATA (Identical to schema.sql) ---
@@ -303,8 +303,10 @@
 
     // Initialize Supabase client
     init() {
-      const storedUrl = localStorage.getItem('paw_care_supabase_url') || DEFAULT_CONFIG.url;
-      const storedKey = localStorage.getItem('paw_care_supabase_anon_key') || DEFAULT_CONFIG.anonKey;
+      let storedUrl = localStorage.getItem('paw_care_supabase_url');
+      let storedKey = localStorage.getItem('paw_care_supabase_anon_key');
+      if (!storedUrl || storedUrl === 'null' || storedUrl === 'undefined') storedUrl = DEFAULT_CONFIG.url;
+      if (!storedKey || storedKey === 'null' || storedKey === 'undefined') storedKey = DEFAULT_CONFIG.anonKey;
 
       this.config.url = storedUrl;
       this.config.anonKey = storedKey;
@@ -1018,22 +1020,32 @@
           throw new Error('Supabase JS library not loaded. Check internet connection.');
         }
         const tempClient = window.supabase.createClient(url, key);
-        const { data, error } = await tempClient.from('vets').select('count', { count: 'exact', head: true });
+        
+        // 1. Check if auth/project is reachable
+        await tempClient.auth.getSession();
+
+        // 2. Check if tables exist
+        const { data, error } = await tempClient.from('vets').select('id').limit(1);
         
         if (error) {
-          throw error;
+          if (statusDiv) {
+            statusDiv.style.backgroundColor = '#FEF3C7';
+            statusDiv.style.color = '#92400E';
+            statusDiv.textContent = '✓ Connected to Supabase Project! Next step: Execute schema.sql in your Supabase SQL Editor to create the tables.';
+          }
+          return;
         }
 
         if (statusDiv) {
           statusDiv.style.backgroundColor = '#EBF5EB';
           statusDiv.style.color = '#1E5E22';
-          statusDiv.textContent = '✓ Successfully connected to Supabase! Database tables found.';
+          statusDiv.textContent = '✓ Connected to Supabase successfully! All database tables found.';
         }
       } catch (err) {
         if (statusDiv) {
           statusDiv.style.backgroundColor = '#FDF2E9';
           statusDiv.style.color = '#7C4A1E';
-          statusDiv.textContent = 'Connection notice: ' + (err.message || 'Could not verify. Make sure schema.sql has been run in Supabase.');
+          statusDiv.textContent = 'Connection notice: ' + (err.message || 'Could not verify. Make sure URL and Key are correct.');
         }
       }
     },
