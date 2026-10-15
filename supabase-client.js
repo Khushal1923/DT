@@ -477,8 +477,22 @@
                 last_name: profileData.last_name || 'Owner'
               });
             }
+            const hasSession = !!data?.session;
+            if (hasSession) {
+              const sessionData = {
+                user: {
+                  id: data.user.id,
+                  email: data.user.email,
+                  role: role,
+                  first_name: profileData.first_name || (role === 'vet' ? 'Dr.' : 'Pet'),
+                  last_name: profileData.last_name || 'Owner'
+                },
+                token: data.session.access_token
+              };
+              localStorage.setItem('paw_care_session', JSON.stringify(sessionData));
+            }
             PawCareSupabase.showToast('Account created in Supabase!', 'success');
-            return { success: true, data };
+            return { success: true, data, requiresEmailConfirmation: !hasSession };
           } catch (e) {
             console.warn('Supabase sign up error', e);
             throw e;
@@ -497,7 +511,18 @@
         };
         store.profiles.push(newProfile);
         setLocalStore(store);
-        return { success: true, profile: newProfile };
+        const sessionData = {
+          user: {
+            id: newProfile.id,
+            email: newProfile.email,
+            role: role,
+            first_name: newProfile.first_name,
+            last_name: newProfile.last_name
+          },
+          token: 'demo_token_' + Date.now()
+        };
+        localStorage.setItem('paw_care_session', JSON.stringify(sessionData));
+        return { success: true, profile: newProfile, requiresEmailConfirmation: false };
       },
 
       async signOut() {

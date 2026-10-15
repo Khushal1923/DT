@@ -10,6 +10,8 @@ function switchRole(role) {
   const wsTitle = document.getElementById('workspace-title');
   const wsDesc = document.getElementById('workspace-desc');
   const emailInput = document.getElementById('signin-email');
+  const passInput = document.getElementById('signin-password');
+  const nameInput = document.getElementById('signin-name');
   const btnText = document.getElementById('signin-btn-text');
   const form = document.getElementById('signin-form');
 
@@ -20,17 +22,51 @@ function switchRole(role) {
     tabOwner.classList.remove('active');
     if (wsTitle) wsTitle.textContent = 'Your veterinarian workspace';
     if (wsDesc) wsDesc.textContent = 'Review today’s schedule, respond to requests and update medical records.';
-    if (emailInput) emailInput.value = 'anita.rao@companionclinic.com';
     if (btnText) btnText.textContent = authMode === 'signup' ? 'Create veterinarian account' : 'Sign in as veterinarian';
     if (form) form.action = 'vet-overview.html';
+
+    if (authMode === 'signup') {
+      if (emailInput) {
+        emailInput.value = '';
+        emailInput.placeholder = 'e.g. dr.anita@clinic.com';
+      }
+      if (passInput) {
+        passInput.value = '';
+        passInput.placeholder = 'Create a secure password (min. 6 chars)';
+      }
+      if (nameInput) {
+        nameInput.placeholder = 'e.g. Dr. Anita Rao';
+      }
+    } else {
+      if (emailInput && !emailInput.value) {
+        emailInput.placeholder = 'e.g. anita.rao@companionclinic.com';
+      }
+    }
   } else {
     tabOwner.classList.add('active');
     tabVet.classList.remove('active');
     if (wsTitle) wsTitle.textContent = 'Your pet owner workspace';
     if (wsDesc) wsDesc.textContent = 'Manage your pets, appointments, records and reminders.';
-    if (emailInput) emailInput.value = 'rohan.patil@example.com';
     if (btnText) btnText.textContent = authMode === 'signup' ? 'Create pet owner account' : 'Sign in as pet owner';
     if (form) form.action = 'overview.html';
+
+    if (authMode === 'signup') {
+      if (emailInput) {
+        emailInput.value = '';
+        emailInput.placeholder = 'e.g. rohan.patil@example.com';
+      }
+      if (passInput) {
+        passInput.value = '';
+        passInput.placeholder = 'Create a secure password (min. 6 chars)';
+      }
+      if (nameInput) {
+        nameInput.placeholder = 'e.g. Rohan Patil';
+      }
+    } else {
+      if (emailInput && !emailInput.value) {
+        emailInput.placeholder = 'e.g. rohan.patil@example.com';
+      }
+    }
   }
 }
 
@@ -39,6 +75,9 @@ function toggleAuthMode() {
   const title = document.querySelector('.signin-form-title');
   const subtitle = document.querySelector('.signin-form-subtitle');
   const nameGroup = document.getElementById('signup-name-group');
+  const nameInput = document.getElementById('signin-name');
+  const emailInput = document.getElementById('signin-email');
+  const passInput = document.getElementById('signin-password');
   const signinOptions = document.getElementById('signin-options');
   const btnText = document.getElementById('signin-btn-text');
   const togglePrompt = document.getElementById('auth-toggle-prompt');
@@ -54,6 +93,22 @@ function toggleAuthMode() {
     if (btnText) btnText.textContent = currentSignInRole === 'vet' ? 'Create veterinarian account' : 'Create pet owner account';
     if (togglePrompt) togglePrompt.textContent = 'Already have an account?';
     if (toggleBtn) toggleBtn.textContent = 'Sign in';
+
+    // Clear email, password, and name inputs when creating account
+    if (emailInput) {
+      emailInput.value = '';
+      emailInput.placeholder = currentSignInRole === 'vet' ? 'e.g. dr.anita@clinic.com' : 'e.g. yourname@example.com';
+    }
+    if (passInput) {
+      passInput.value = '';
+      passInput.placeholder = 'Create a secure password (min. 6 chars)';
+      passInput.autocomplete = 'new-password';
+    }
+    if (nameInput) {
+      nameInput.value = '';
+      nameInput.placeholder = currentSignInRole === 'vet' ? 'e.g. Dr. Anita Rao' : 'e.g. Rohan Patil';
+      nameInput.required = true;
+    }
   } else {
     if (title) title.textContent = 'Good to see you again.';
     if (subtitle) subtitle.textContent = 'Sign in to your Paw Care workspace.';
@@ -62,6 +117,17 @@ function toggleAuthMode() {
     if (btnText) btnText.textContent = currentSignInRole === 'vet' ? 'Sign in as veterinarian' : 'Sign in as pet owner';
     if (togglePrompt) togglePrompt.textContent = 'New to Paw Care?';
     if (toggleBtn) toggleBtn.textContent = 'Create an account';
+
+    if (nameInput) {
+      nameInput.required = false;
+    }
+    if (passInput) {
+      passInput.autocomplete = 'current-password';
+      passInput.placeholder = '••••••••••••';
+    }
+    if (emailInput) {
+      emailInput.placeholder = currentSignInRole === 'vet' ? 'e.g. anita.rao@companionclinic.com' : 'e.g. rohan.patil@example.com';
+    }
   }
 }
 
@@ -78,13 +144,44 @@ async function handleAuthSubmit(e) {
   const fullName = nameInput ? nameInput.value.trim() : '';
 
   if (errorBox) errorBox.style.display = 'none';
+
+  if (!email) {
+    if (errorBox) {
+      errorBox.style.display = 'block';
+      errorBox.style.backgroundColor = '#FDF2E9';
+      errorBox.style.color = '#7C4A1E';
+      errorBox.textContent = 'Please enter an email address.';
+    }
+    return;
+  }
+
+  if (!password) {
+    if (errorBox) {
+      errorBox.style.display = 'block';
+      errorBox.style.backgroundColor = '#FDF2E9';
+      errorBox.style.color = '#7C4A1E';
+      errorBox.textContent = 'Please enter a password.';
+    }
+    return;
+  }
+
+  if (authMode === 'signup' && password.length < 6) {
+    if (errorBox) {
+      errorBox.style.display = 'block';
+      errorBox.style.backgroundColor = '#FDF2E9';
+      errorBox.style.color = '#7C4A1E';
+      errorBox.textContent = 'Password must be at least 6 characters long.';
+    }
+    return;
+  }
+
   if (submitBtn) submitBtn.disabled = true;
 
   try {
     if (authMode === 'signup') {
       const parts = fullName.split(' ');
-      const firstName = parts[0] || (currentSignInRole === 'vet' ? 'Dr. Anita' : 'Rohan');
-      const lastName = parts.slice(1).join(' ') || (currentSignInRole === 'vet' ? 'Rao' : 'Patil');
+      const firstName = parts[0] || (currentSignInRole === 'vet' ? 'Dr. Anita' : 'Pet');
+      const lastName = parts.slice(1).join(' ') || (currentSignInRole === 'vet' ? 'Rao' : 'Owner');
 
       const res = await window.PawCareSupabase.auth.signUp(email, password, currentSignInRole, {
         first_name: firstName,
@@ -496,10 +593,15 @@ function initSeamlessNavigation() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // 1. Check URL query parameter for ?role=vet on Sign In page
+  // 1. Check URL query parameters for ?role=vet or ?mode=signup on Sign In page
   const params = new URLSearchParams(window.location.search);
   if (params.get('role') === 'vet') {
     switchRole('vet');
+  }
+  if (params.get('mode') === 'signup' || params.get('action') === 'signup') {
+    if (authMode !== 'signup') {
+      toggleAuthMode();
+    }
   }
 
   // 2. Accordion Logic on Landing Page
