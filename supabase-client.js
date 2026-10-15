@@ -303,24 +303,28 @@
 
     // Initialize Supabase client
     init() {
-      let storedUrl = localStorage.getItem('paw_care_supabase_url');
-      let storedKey = localStorage.getItem('paw_care_supabase_anon_key');
-      if (!storedUrl || storedUrl === 'null' || storedUrl === 'undefined') storedUrl = DEFAULT_CONFIG.url;
-      if (!storedKey || storedKey === 'null' || storedKey === 'undefined') storedKey = DEFAULT_CONFIG.anonKey;
+      const url = DEFAULT_CONFIG.url;
+      const key = DEFAULT_CONFIG.anonKey;
 
-      this.config.url = storedUrl;
-      this.config.anonKey = storedKey;
+      this.config.url = url;
+      this.config.anonKey = key;
 
-      if (window.supabase && typeof window.supabase.createClient === 'function' && storedUrl && storedKey) {
+      // Ensure any existing status pill or setup modal is removed
+      const oldBadge = document.getElementById('supabase-status-pill');
+      if (oldBadge) oldBadge.remove();
+      const oldModal = document.getElementById('supabase-setup-modal');
+      if (oldModal) oldModal.remove();
+
+      if (window.supabase && typeof window.supabase.createClient === 'function' && url && key) {
         try {
-          this.client = window.supabase.createClient(storedUrl, storedKey, {
+          this.client = window.supabase.createClient(url, key, {
             auth: {
               persistSession: true,
               autoRefreshToken: true
             }
           });
           this.isLive = true;
-          console.info('🐾 Paw Care: Supabase client initialized with URL', storedUrl);
+          console.info('🐾 Paw Care: Supabase client connected to', url);
         } catch (err) {
           console.warn('🐾 Paw Care: Supabase initialization failed, falling back to local database store.', err);
           this.client = null;
@@ -329,10 +333,7 @@
       } else {
         this.client = null;
         this.isLive = false;
-        console.info('🐾 Paw Care: Running in local database mode (seed data loaded). Enter credentials in the Supabase connector to connect live.');
       }
-
-      this.renderConnectionBadge();
     },
 
     isConfigured() {
@@ -902,171 +903,18 @@
     },
 
     renderConnectionBadge() {
-      let badge = document.getElementById('supabase-status-pill');
-      if (!badge) {
-        badge = document.createElement('div');
-        badge.id = 'supabase-status-pill';
-        badge.className = 'supabase-status-pill';
-        badge.onclick = () => PawCareSupabase.openSetupModal();
-        document.body.appendChild(badge);
-      }
-
-      const isConnected = this.isConfigured();
-      badge.innerHTML = `
-        <span class="status-dot ${isConnected ? 'dot-connected' : 'dot-demo'}"></span>
-        <span class="status-text">${isConnected ? 'Supabase: Connected' : 'Supabase: Demo mode'}</span>
-        <span class="status-action">Configure ⚙</span>
-      `;
-      badge.title = isConnected 
-        ? 'Connected to live Supabase project! Click to manage settings.' 
-        : 'Running on local seed data. Click to connect your Supabase project.';
+      // Floating pill removed as requested
+      const badge = document.getElementById('supabase-status-pill');
+      if (badge) badge.remove();
     },
 
     openSetupModal() {
-      let modal = document.getElementById('supabase-setup-modal');
-      if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'supabase-setup-modal';
-        modal.className = 'supabase-modal-overlay';
-        modal.innerHTML = `
-          <div class="supabase-modal-card">
-            <div class="supabase-modal-header">
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <svg viewBox="0 0 24 24" width="22" height="22" fill="#3ECF8E">
-                  <path d="M21.362 9.354H12V.396a.396.396 0 0 0-.716-.233L.32 14.28a.396.396 0 0 0 .31.624h9.362v8.958a.396.396 0 0 0 .716.233l10.964-14.117a.396.396 0 0 0-.31-.624z"/>
-                </svg>
-                <h3 style="margin: 0; font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; color: var(--color-heading);">Supabase Connection Settings</h3>
-              </div>
-              <button type="button" class="supabase-modal-close" onclick="PawCareSupabase.closeSetupModal()">&times;</button>
-            </div>
-            
-            <div class="supabase-modal-body">
-              <p style="font-size: 0.8rem; color: var(--color-body); line-height: 1.5; margin-bottom: 14px;">
-                Connect your Paw Care application to your own Supabase project for real-time database storage and authentication.
-              </p>
-
-              <div class="card-sand" style="padding: 12px 14px; margin-bottom: 16px; font-size: 0.74rem; line-height: 1.45;">
-                <strong>Quick Setup Tip:</strong> In your Supabase Dashboard, open <em>SQL Editor</em> and execute the provided <code>schema.sql</code> file to create all required tables, RLS policies, and seed records in one click!
-              </div>
-
-              <div class="form-group" style="margin-bottom: 12px;">
-                <label class="form-label" style="font-size: 0.76rem;">Supabase Project URL</label>
-                <input type="text" id="modal-supabase-url" class="form-control" placeholder="https://xyzcompany.supabase.co" value="${this.config.url || ''}" />
-                <div class="form-helper">Found in Project Settings -> API -> Project URL</div>
-              </div>
-
-              <div class="form-group" style="margin-bottom: 16px;">
-                <label class="form-label" style="font-size: 0.76rem;">Supabase Anon Public API Key</label>
-                <input type="password" id="modal-supabase-key" class="form-control" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." value="${this.config.anonKey || ''}" />
-                <div class="form-helper">Found in Project Settings -> API -> Project API keys (anon public)</div>
-              </div>
-
-              <div id="modal-test-status" style="display: none; padding: 10px 12px; border-radius: 4px; font-size: 0.74rem; margin-bottom: 14px;"></div>
-
-              <div style="display: flex; gap: 10px; justify-content: space-between; align-items: center;">
-                <button type="button" class="btn btn-outline btn-sm" onclick="PawCareSupabase.handleModalTest()">Test Connection</button>
-                <div style="display: flex; gap: 8px;">
-                  <button type="button" class="btn btn-outline btn-sm" onclick="PawCareSupabase.clearConfig(); PawCareSupabase.closeSetupModal();">Use Demo Mode</button>
-                  <button type="button" class="btn btn-primary btn-sm" onclick="PawCareSupabase.handleModalSave()">Save &amp; Connect</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        `;
-        document.body.appendChild(modal);
-      } else {
-        const urlInput = document.getElementById('modal-supabase-url');
-        const keyInput = document.getElementById('modal-supabase-key');
-        if (urlInput) urlInput.value = this.config.url || '';
-        if (keyInput) keyInput.value = this.config.anonKey || '';
-        modal.style.display = 'flex';
-      }
+      // Setup modal removed
     },
 
     closeSetupModal() {
       const modal = document.getElementById('supabase-setup-modal');
-      if (modal) {
-        modal.style.display = 'none';
-      }
-    },
-
-    async handleModalTest() {
-      const urlInput = document.getElementById('modal-supabase-url');
-      const keyInput = document.getElementById('modal-supabase-key');
-      const statusDiv = document.getElementById('modal-test-status');
-
-      const url = urlInput?.value.trim();
-      const key = keyInput?.value.trim();
-
-      if (!url || !key) {
-        if (statusDiv) {
-          statusDiv.style.display = 'block';
-          statusDiv.style.backgroundColor = '#FDF2E9';
-          statusDiv.style.color = '#7C4A1E';
-          statusDiv.textContent = 'Please fill in both URL and Anon Key before testing.';
-        }
-        return;
-      }
-
-      if (statusDiv) {
-        statusDiv.style.display = 'block';
-        statusDiv.style.backgroundColor = '#FAF5EC';
-        statusDiv.style.color = '#482B19';
-        statusDiv.textContent = 'Testing connection to Supabase...';
-      }
-
-      try {
-        if (!window.supabase) {
-          throw new Error('Supabase JS library not loaded. Check internet connection.');
-        }
-        const tempClient = window.supabase.createClient(url, key);
-        
-        // 1. Check if auth/project is reachable
-        await tempClient.auth.getSession();
-
-        // 2. Check if tables exist
-        const { data, error } = await tempClient.from('vets').select('id').limit(1);
-        
-        if (error) {
-          if (statusDiv) {
-            statusDiv.style.backgroundColor = '#FEF3C7';
-            statusDiv.style.color = '#92400E';
-            statusDiv.textContent = '✓ Connected to Supabase Project! Next step: Execute schema.sql in your Supabase SQL Editor to create the tables.';
-          }
-          return;
-        }
-
-        if (statusDiv) {
-          statusDiv.style.backgroundColor = '#EBF5EB';
-          statusDiv.style.color = '#1E5E22';
-          statusDiv.textContent = '✓ Connected to Supabase successfully! All database tables found.';
-        }
-      } catch (err) {
-        if (statusDiv) {
-          statusDiv.style.backgroundColor = '#FDF2E9';
-          statusDiv.style.color = '#7C4A1E';
-          statusDiv.textContent = 'Connection notice: ' + (err.message || 'Could not verify. Make sure URL and Key are correct.');
-        }
-      }
-    },
-
-    async handleModalSave() {
-      const urlInput = document.getElementById('modal-supabase-url');
-      const keyInput = document.getElementById('modal-supabase-key');
-      const url = urlInput?.value.trim();
-      const key = keyInput?.value.trim();
-
-      if (!url || !key) {
-        alert('Please provide both Project URL and Anon Key.');
-        return;
-      }
-
-      try {
-        await this.saveConfig(url, key);
-        this.closeSetupModal();
-      } catch (err) {
-        alert(err.message);
-      }
+      if (modal) modal.remove();
     }
   };
 
