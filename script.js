@@ -95,6 +95,26 @@ async function acceptRequest() {
   }
 }
 
+// Interactive Mockup Slot Picker in Pillar 1 (Care & Visits)
+function highlightPillarSlot(slotBtn, slotTime) {
+  const container = slotBtn.closest('.preview-slots');
+  if (container) {
+    container.querySelectorAll('.preview-slot').forEach(b => b.classList.remove('active'));
+  }
+  slotBtn.classList.add('active');
+
+  const statusBox = document.getElementById('care-slot-status');
+  if (statusBox) {
+    statusBox.innerHTML = `
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <polyline points="12 6 12 12 16 14"></polyline>
+      </svg>
+      <span>Selected: <strong>${slotTime}</strong> · Ready for booking request</span>
+    `;
+  }
+}
+
 // Save Pet Profile to Supabase
 async function savePetProfile(e) {
   if (e) e.preventDefault();
