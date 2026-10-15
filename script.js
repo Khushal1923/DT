@@ -1,6 +1,7 @@
 // Paw Care — Complete Interactive Logic, Supabase Integration & Page Navigation
 
 let currentSignInRole = 'owner';
+let authMode = 'signin'; // 'signin' | 'signup'
 
 function switchRole(role) {
   currentSignInRole = role;
@@ -20,7 +21,7 @@ function switchRole(role) {
     if (wsTitle) wsTitle.textContent = 'Your veterinarian workspace';
     if (wsDesc) wsDesc.textContent = 'Review today’s schedule, respond to requests and update medical records.';
     if (emailInput) emailInput.value = 'anita.rao@companionclinic.com';
-    if (btnText) btnText.textContent = 'Sign in as veterinarian';
+    if (btnText) btnText.textContent = authMode === 'signup' ? 'Create veterinarian account' : 'Sign in as veterinarian';
     if (form) form.action = 'vet-overview.html';
   } else {
     tabOwner.classList.add('active');
@@ -28,43 +29,110 @@ function switchRole(role) {
     if (wsTitle) wsTitle.textContent = 'Your pet owner workspace';
     if (wsDesc) wsDesc.textContent = 'Manage your pets, appointments, records and reminders.';
     if (emailInput) emailInput.value = 'rohan.patil@example.com';
-    if (btnText) btnText.textContent = 'Sign in as pet owner';
+    if (btnText) btnText.textContent = authMode === 'signup' ? 'Create pet owner account' : 'Sign in as pet owner';
     if (form) form.action = 'overview.html';
   }
 }
 
-async function handleSignIn(e) {
+function toggleAuthMode() {
+  authMode = authMode === 'signin' ? 'signup' : 'signin';
+  const title = document.querySelector('.signin-form-title');
+  const subtitle = document.querySelector('.signin-form-subtitle');
+  const nameGroup = document.getElementById('signup-name-group');
+  const signinOptions = document.getElementById('signin-options');
+  const btnText = document.getElementById('signin-btn-text');
+  const togglePrompt = document.getElementById('auth-toggle-prompt');
+  const toggleBtn = document.getElementById('auth-toggle-btn');
+  const errorBox = document.getElementById('auth-error-msg');
+  if (errorBox) errorBox.style.display = 'none';
+
+  if (authMode === 'signup') {
+    if (title) title.textContent = 'Join Paw Care today.';
+    if (subtitle) subtitle.textContent = 'Create your account to get started.';
+    if (nameGroup) nameGroup.style.display = 'block';
+    if (signinOptions) signinOptions.style.display = 'none';
+    if (btnText) btnText.textContent = currentSignInRole === 'vet' ? 'Create veterinarian account' : 'Create pet owner account';
+    if (togglePrompt) togglePrompt.textContent = 'Already have an account?';
+    if (toggleBtn) toggleBtn.textContent = 'Sign in';
+  } else {
+    if (title) title.textContent = 'Good to see you again.';
+    if (subtitle) subtitle.textContent = 'Sign in to your Paw Care workspace.';
+    if (nameGroup) nameGroup.style.display = 'none';
+    if (signinOptions) signinOptions.style.display = 'flex';
+    if (btnText) btnText.textContent = currentSignInRole === 'vet' ? 'Sign in as veterinarian' : 'Sign in as pet owner';
+    if (togglePrompt) togglePrompt.textContent = 'New to Paw Care?';
+    if (toggleBtn) toggleBtn.textContent = 'Create an account';
+  }
+}
+
+async function handleAuthSubmit(e) {
   if (e) e.preventDefault();
   const emailInput = document.getElementById('signin-email');
   const passInput = document.getElementById('signin-password');
-  const email = emailInput ? emailInput.value : '';
-  const pass = passInput ? passInput.value : '';
+  const nameInput = document.getElementById('signin-name');
+  const errorBox = document.getElementById('auth-error-msg');
+  const submitBtn = document.getElementById('signin-submit');
 
-  if (window.PawCareSupabase) {
-    try {
-      const res = await window.PawCareSupabase.auth.signIn(email, pass, currentSignInRole);
+  const email = emailInput ? emailInput.value.trim() : '';
+  const password = passInput ? passInput.value.trim() : '';
+  const fullName = nameInput ? nameInput.value.trim() : '';
+
+  if (errorBox) errorBox.style.display = 'none';
+  if (submitBtn) submitBtn.disabled = true;
+
+  try {
+    if (authMode === 'signup') {
+      const parts = fullName.split(' ');
+      const firstName = parts[0] || (currentSignInRole === 'vet' ? 'Dr. Anita' : 'Rohan');
+      const lastName = parts.slice(1).join(' ') || (currentSignInRole === 'vet' ? 'Rao' : 'Patil');
+
+      const res = await window.PawCareSupabase.auth.signUp(email, password, currentSignInRole, {
+        first_name: firstName,
+        last_name: lastName
+      });
+
+      if (res && res.requiresEmailConfirmation) {
+        if (errorBox) {
+          errorBox.style.display = 'block';
+          errorBox.style.backgroundColor = '#EBF5EB';
+          errorBox.style.color = '#1E5E22';
+          errorBox.innerHTML = `✓ Account created in Supabase! If confirmation is required, check <strong>${email}</strong>, or sign in now.`;
+        }
+      } else {
+        setTimeout(() => {
+          window.location.href = currentSignInRole === 'vet' ? 'vet-overview.html' : 'overview.html';
+        }, 500);
+      }
+    } else {
+      // Sign in mode
+      const res = await window.PawCareSupabase.auth.signIn(email, password, currentSignInRole);
       if (res && res.success) {
         setTimeout(() => {
-          if (currentSignInRole === 'vet') {
-            window.location.href = 'vet-overview.html';
-          } else {
-            window.location.href = 'overview.html';
-          }
-        }, 400);
-        return;
+          window.location.href = currentSignInRole === 'vet' ? 'vet-overview.html' : 'overview.html';
+        }, 500);
+      } else if (res && res.error) {
+        if (errorBox) {
+          errorBox.style.display = 'block';
+          errorBox.style.backgroundColor = '#FEF3C7';
+          errorBox.style.color = '#92400E';
+          errorBox.innerHTML = `Supabase Auth Notice: <strong>${res.error}</strong>.<br><br>Haven't created an account with this email in your new Supabase project yet? <a href="javascript:void(0)" onclick="toggleAuthMode()" style="text-decoration: underline; font-weight: 800; color: #78350F;">Click here to Create Account</a> with this email, or sign in with Demo Mode.`;
+        }
       }
-    } catch (err) {
-      console.warn('Sign in handler exception', err);
     }
-  }
-
-  // Fallback redirect
-  if (currentSignInRole === 'vet') {
-    window.location.href = 'vet-overview.html';
-  } else {
-    window.location.href = 'overview.html';
+  } catch (err) {
+    if (errorBox) {
+      errorBox.style.display = 'block';
+      errorBox.style.backgroundColor = '#FDF2E9';
+      errorBox.style.color = '#7C4A1E';
+      errorBox.textContent = err.message || 'Authentication error occurred.';
+    }
+  } finally {
+    if (submitBtn) submitBtn.disabled = false;
   }
 }
+
+// Backwards-compatible alias
+const handleSignIn = handleAuthSubmit;
 
 function selectSlot(btn, slotTime) {
   document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('active'));
