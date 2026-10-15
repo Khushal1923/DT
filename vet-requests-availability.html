@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Request &amp; Availability — Paw Care</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ==================== TOP APP NAVBAR ==================== -->
+  <header class="app-topbar">
+    <a href="index.html" class="brand-logo">
+      <div class="logo-box">
+        <svg viewBox="0 0 40 40" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="40" height="40" rx="5" fill="#482B19"/>
+          <circle cx="14.5" cy="14.5" r="2.2" stroke="#FAF5EC" stroke-width="1.6"/>
+          <circle cx="20" cy="12" r="2.2" stroke="#FAF5EC" stroke-width="1.6"/>
+          <circle cx="25.5" cy="14.5" r="2.2" stroke="#FAF5EC" stroke-width="1.6"/>
+          <circle cx="11.5" cy="20" r="2" stroke="#FAF5EC" stroke-width="1.6"/>
+          <path d="M19.8 18.5C16.2 18.5 14 21.2 14.5 24.5C14.9 27 17.3 28 19.8 28C22.3 28 24.7 27 25.1 24.5C25.6 21.2 23.4 18.5 19.8 18.5Z" stroke="#FAF5EC" stroke-width="1.6"/>
+        </svg>
+      </div>
+      <span class="logo-text">Paw Care</span>
+    </a>
+
+    <div class="topbar-right">
+      <a href="#support" class="topbar-help">Help &amp; support</a>
+      <a href="vet-requests-availability.html" class="topbar-bell" aria-label="Notifications">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+      </a>
+      <a href="vet-profile.html" class="topbar-user">
+        <span class="user-avatar-sm">AR</span>
+        <span>Dr. Anita Rao</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </a>
+    </div>
+  </header>
+
+  <!-- ==================== WORKSPACE LAYOUT ==================== -->
+  <div class="app-layout">
+    <!-- Left Sidebar -->
+    <aside class="app-sidebar">
+      <div class="sidebar-role-label">VETERINARIAN</div>
+      <nav class="sidebar-nav">
+        <a href="vet-overview.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span>Overview</span>
+        </a>
+        <a href="vet-week-schedule.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          <span>Week schedule</span>
+        </a>
+        <a href="vet-requests-availability.html" class="sidebar-link active">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 14 14"></polyline>
+          </svg>
+          <span>Request &amp; availability</span>
+        </a>
+        <a href="vet-consultation.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span>Records</span>
+        </a>
+        <a href="vet-profile.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span>My profile</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-care-card">
+        <h5 style="margin-top: 0;">Companion Animal Clinic</h5>
+        <p style="margin-bottom: 6px;">Deccan, Pune · General physician, dogs &amp; cats</p>
+        <div style="font-size: 0.7rem; font-weight: 800; color: #5C3D28;">Love. Care. Heal.</div>
+      </div>
+
+      <a href="signin.html?role=vet" class="sidebar-signout">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+        <span>Sign out</span>
+      </a>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <div class="page-breadcrumb">Wednesday, 7 October 2026 · Practice Management</div>
+      <div class="page-header-row">
+        <div>
+          <h1 class="page-title">Request &amp; Availability</h1>
+          <p class="page-subtitle">Review pending patient booking requests and configure your available consultation slots.</p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <a href="vet-overview.html" class="btn btn-outline">&larr; Today's schedule</a>
+          <a href="vet-week-schedule.html" class="btn btn-primary">Week schedule &rarr;</a>
+        </div>
+      </div>
+
+      <!-- ==================== PENDING REQUESTS & AVAILABLE SLOTS ==================== -->
+      <div class="grid-booking-layout" style="margin-bottom: 24px;">
+        
+        <!-- Left Column: Pending requests -->
+        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div class="card-title-row">
+              <div>
+                <h2 class="card-title">Pending requests</h2>
+                <div style="font-size: 0.74rem; color: var(--color-muted); margin-top: 2px;">Patient booking requests awaiting your clinic confirmation</div>
+              </div>
+              <span style="font-size: 0.74rem; font-weight: 700; color: var(--color-muted);" id="pending-count">2 requests</span>
+            </div>
+
+            <!-- Request 1: Bruno -->
+            <div class="card-sand" style="margin-bottom: 14px;" id="req-card-1">
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 4px;">
+                <div style="font-size: 0.88rem; font-weight: 800; color: var(--color-heading);">Bruno · Labrador · 3 years</div>
+                <span class="badge badge-pending">Pending</span>
+              </div>
+              <div style="font-size: 0.74rem; color: var(--color-muted); margin-bottom: 2px;">Owner: Rohan Patil</div>
+              <div style="font-size: 0.75rem; color: var(--color-body); margin-bottom: 12px; font-weight: 600;">
+                Rabies booster · Fri, 9 Oct · 10:30 am
+              </div>
+              <div style="display: flex; gap: 8px;" id="request-actions">
+                <button type="button" class="btn btn-primary btn-sm" onclick="acceptRequest('req-card-1')">Accept</button>
+                <button type="button" class="btn btn-outline btn-sm" style="background-color: #FFFFFF;" onclick="alert('Reschedule notification sent to pet owner: Rohan Patil.')">Reschedule</button>
+              </div>
+            </div>
+
+            <!-- Request 2: Simba -->
+            <div class="card-sand" style="margin-bottom: 12px;" id="req-card-2">
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 4px;">
+                <div style="font-size: 0.88rem; font-weight: 800; color: var(--color-heading);">Simba · Golden Retriever · 4 months</div>
+                <span class="badge badge-pending">Pending</span>
+              </div>
+              <div style="font-size: 0.74rem; color: var(--color-muted); margin-bottom: 2px;">Owner: Neha Sharma</div>
+              <div style="font-size: 0.75rem; color: var(--color-body); margin-bottom: 12px; font-weight: 600;">
+                Puppy First Vaccination · Sat, 10 Oct · 11:15 am
+              </div>
+              <div style="display: flex; gap: 8px;" id="request-actions-2">
+                <button type="button" class="btn btn-primary btn-sm" onclick="acceptSecondaryRequest('req-card-2')">Accept</button>
+                <button type="button" class="btn btn-outline btn-sm" style="background-color: #FFFFFF;" onclick="alert('Reschedule notification sent to pet owner: Neha Sharma.')">Reschedule</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="font-size: 0.7rem; color: var(--color-muted); line-height: 1.45; border-top: 1px solid var(--color-border-subtle); padding-top: 10px; margin-top: 8px;">
+            Availability is subject to clinic confirmation before the request is accepted. Once accepted, owners receive automatic notifications.
+          </div>
+        </div>
+
+        <!-- Right Column: Available slots -->
+        <div id="availability" class="card">
+          <div class="card-title-row">
+            <div>
+              <h2 class="card-title">Available slots</h2>
+              <div style="font-size: 0.74rem; color: var(--color-muted); margin-top: 2px;">Open booking slots for patient scheduling</div>
+            </div>
+            <a href="#availability" class="card-link" onclick="alert('Slot configuration ready to be adjusted below.')">Manage slots</a>
+          </div>
+
+          <!-- Quick slot stats -->
+          <div class="form-grid-2" style="gap: 10px; margin-bottom: 16px;">
+            <div class="card-sand" style="padding: 10px 12px;">
+              <div style="font-size: 0.68rem; color: var(--color-muted); font-weight: 600;">Today</div>
+              <div style="font-family: var(--font-heading); font-size: 1.05rem; font-weight: 800; color: var(--color-heading);">1 slot</div>
+              <div style="font-size: 0.72rem; color: var(--color-muted);">3:30 pm</div>
+            </div>
+            <div class="card" style="padding: 10px 12px; background-color: #FAF5EC;">
+              <div style="font-size: 0.68rem; color: var(--color-muted); font-weight: 600;">Tomorrow</div>
+              <div style="font-family: var(--font-heading); font-size: 1.05rem; font-weight: 800; color: var(--color-heading);">4 slots</div>
+              <div style="font-size: 0.72rem; color: var(--color-muted);">9:00 am – 12:30 pm</div>
+            </div>
+          </div>
+
+          <!-- Slot timing configuration -->
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label class="form-label" style="font-size: 0.76rem; font-weight: 700;">Available from</label>
+            <select class="form-control" id="avail-from">
+              <option selected>9:00 am</option>
+              <option>10:00 am</option>
+              <option>11:00 am</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label class="form-label" style="font-size: 0.76rem; font-weight: 700;">Available to</label>
+            <select class="form-control" id="avail-to">
+              <option selected>5:30 pm</option>
+              <option>6:30 pm</option>
+              <option>7:00 pm</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label class="form-label" style="font-size: 0.76rem; font-weight: 700;">Visit duration</label>
+            <select class="form-control" id="avail-duration">
+              <option selected>30 minutes</option>
+              <option>45 minutes</option>
+              <option>60 minutes</option>
+            </select>
+          </div>
+
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="btn btn-primary" style="flex: 1;" onclick="updateAvailabilitySlots()">Update availability</button>
+            <button type="button" class="btn btn-outline" onclick="blockTimeSlot()">Block time</button>
+          </div>
+          <div id="avail-status-msg" style="display: none; margin-top: 10px; font-size: 0.74rem; color: #275D34; font-weight: 700;">✓ Availability updated successfully!</div>
+        </div>
+
+      </div>
+
+      <div class="workspace-footer">
+        <strong>Paw Care</strong> · Your patient care circle stays private and secure.
+      </div>
+    </main>
+  </div>
+
+  <!-- Client-side slot handling scripts -->
+  <script>
+    function acceptSecondaryRequest(cardId) {
+      const card = document.getElementById(cardId);
+      const actions = document.getElementById('request-actions-2');
+      if (actions) {
+        actions.innerHTML = '<span class="badge badge-verified">Accepted · Confirmed for Sat, 10 Oct · 11:15 am</span>';
+      }
+      const pendingCount = document.getElementById('pending-count');
+      if (pendingCount) {
+        const text = pendingCount.textContent.trim();
+        if (text.startsWith('2')) {
+          pendingCount.textContent = '1 request';
+        } else {
+          pendingCount.textContent = '0 requests';
+        }
+      }
+    }
+
+    function updateAvailabilitySlots() {
+      const fromVal = document.getElementById('avail-from').value;
+      const toVal = document.getElementById('avail-to').value;
+      const durationVal = document.getElementById('avail-duration').value;
+      const statusMsg = document.getElementById('avail-status-msg');
+      if (statusMsg) {
+        statusMsg.style.display = 'block';
+        statusMsg.textContent = `✓ Availability updated: ${fromVal} – ${toVal} (${durationVal} slots)`;
+        setTimeout(() => {
+          statusMsg.style.display = 'none';
+        }, 4000);
+      }
+    }
+
+    function blockTimeSlot() {
+      const slot = prompt('Enter time range to block (e.g. 1:00 pm - 2:00 pm):', '1:00 pm – 2:00 pm');
+      if (slot) {
+        alert(`Slot [${slot}] blocked from booking schedule.`);
+      }
+    }
+  </script>
+
+  <!-- Supabase Integration -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

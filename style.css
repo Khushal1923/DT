@@ -2063,3 +2063,464 @@ button {
   border-color: #D9C3AC;
   color: #482B19;
 }
+
+/* Supabase Status Pill */
+.supabase-status-pill {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  background-color: #FAF5EC;
+  border: 1px solid #DFD2C0;
+  box-shadow: 0 3px 12px rgba(72, 43, 25, 0.08);
+  border-radius: 30px;
+  padding: 7px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--color-heading);
+  cursor: pointer;
+  z-index: 9999;
+  transition: all 0.2s ease;
+}
+
+.supabase-status-pill:hover {
+  background-color: #F4EAE0;
+  border-color: #B68B62;
+  transform: translateY(-1px);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot-connected {
+  background-color: #2E6930;
+  box-shadow: 0 0 0 3px rgba(46, 105, 48, 0.2);
+}
+
+.dot-demo {
+  background-color: #E0822D;
+  box-shadow: 0 0 0 3px rgba(224, 130, 45, 0.2);
+}
+
+.status-action {
+  font-size: 0.68rem;
+  color: var(--color-muted);
+  margin-left: 2px;
+}
+
+/* Supabase Modal Overlay */
+.supabase-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(43, 26, 16, 0.6);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100000;
+  padding: 16px;
+}
+
+.supabase-modal-card {
+  background-color: #FFFFFF;
+  border: 1px solid #DFD2C0;
+  border-radius: 6px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  width: 100%;
+  max-width: 520px;
+  overflow: hidden;
+  animation: modalPop 0.2s ease-out;
+}
+
+@keyframes modalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.supabase-modal-header {
+  padding: 18px 20px;
+  background-color: #FAF5EC;
+  border-bottom: 1px solid #EAE0D2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.supabase-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--color-muted);
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.supabase-modal-close:hover {
+  color: var(--color-heading);
+}
+
+.supabase-modal-body {
+  padding: 20px;
+}
+
+/* ==========================================================================
+   VETERINARIAN WEEKLY SCHEDULE & SLOTS
+   ========================================================================== */
+.schedule-week-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.schedule-day-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 4px;
+  background-color: #FAF5EC;
+  border: 1px solid var(--color-border);
+  min-width: 82px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  text-align: center;
+}
+
+.schedule-day-tab:hover {
+  background-color: var(--bg-sand);
+  border-color: #D9CBB8;
+}
+
+.schedule-day-tab.active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #FAF5EC;
+}
+
+.schedule-day-tab.active .schedule-day-name,
+.schedule-day-tab.active .schedule-day-date,
+.schedule-day-tab.active .schedule-day-count {
+  color: #FAF5EC;
+}
+
+.schedule-day-name {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-muted);
+}
+
+.schedule-day-date {
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--color-heading);
+  line-height: 1.2;
+  margin: 2px 0;
+}
+
+.schedule-day-count {
+  font-size: 0.65rem;
+  color: var(--color-muted);
+}
+
+.schedule-day-group {
+  margin-bottom: 20px;
+}
+
+.schedule-day-group:last-child {
+  margin-bottom: 0;
+}
+
+.schedule-day-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--bg-sand);
+  border: 1px solid #E2D5C3;
+  border-radius: 4px;
+  padding: 8px 14px;
+  margin-bottom: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-heading);
+}
+
+.schedule-day-header.today {
+  background-color: #482B19;
+  color: #FAF5EC;
+  border-color: #482B19;
+}
+
+.schedule-day-header.today .schedule-day-title {
+  color: #FAF5EC;
+}
+
+.schedule-day-header.today .schedule-day-badge {
+  background-color: #FAF5EC;
+  color: #482B19;
+  font-weight: 800;
+}
+
+.schedule-visit-item {
+  background-color: #FFFFFF;
+  border: 1px solid #EAE0D2;
+  border-radius: 4px;
+  padding: 13px 16px;
+  display: grid;
+  grid-template-columns: 86px 1fr auto;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+  transition: border-color 0.15s ease;
+}
+
+.schedule-visit-item:hover {
+  border-color: #D9CBB8;
+}
+
+.schedule-visit-item:last-child {
+  margin-bottom: 0;
+}
+
+.schedule-visit-item.today-active {
+  background-color: var(--bg-sand-light);
+  border-color: #E2D5C3;
+}
+
+.today-summary-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 14px 18px;
+  background-color: var(--bg-sand);
+  border: 1px solid #E2D5C3;
+  border-radius: 4px;
+}
+
+.today-summary-stat {
+  display: flex;
+  flex-direction: column;
+  min-width: 120px;
+}
+
+.today-summary-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.today-summary-value {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--color-heading);
+}
+
+/* ==========================================================================
+   VET RECORDS: SEARCH BAR & TODAY'S PATIENT SMALL DIVS
+   ========================================================================== */
+.records-search-box {
+  position: relative;
+  margin-bottom: 22px;
+}
+
+.records-search-box svg {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-muted);
+  pointer-events: none;
+}
+
+.records-search-input {
+  width: 100%;
+  padding: 13px 44px 13px 46px;
+  font-size: 0.88rem;
+  font-family: inherit;
+  border: 1px solid #DFD2C0;
+  border-radius: 4px;
+  background-color: #FFFFFF;
+  color: var(--color-heading);
+  outline: none;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.records-search-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(72, 43, 25, 0.08);
+}
+
+.records-search-clear {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: var(--color-muted);
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  display: none;
+}
+
+.records-search-clear:hover {
+  color: var(--color-heading);
+}
+
+.today-patients-section {
+  margin-bottom: 24px;
+}
+
+.today-patients-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.today-patients-title {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--color-heading);
+}
+
+.today-patients-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 14px;
+}
+
+.today-patient-small-div {
+  background-color: #FFFFFF;
+  border: 1.5px solid #EAE0D2;
+  border-radius: 6px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+
+.today-patient-small-div:hover {
+  border-color: #CBB8A3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(72, 43, 25, 0.06);
+}
+
+.today-patient-small-div.active {
+  border-color: var(--color-primary);
+  background-color: var(--bg-sand-light);
+  box-shadow: 0 4px 14px rgba(72, 43, 25, 0.1);
+}
+
+.today-patient-small-div.active::after {
+  content: 'Selected';
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  background-color: #FFFFFF;
+  border: 1px solid var(--color-primary);
+  padding: 2px 7px;
+  border-radius: 3px;
+}
+
+.patient-small-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.patient-small-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 4px;
+  object-fit: cover;
+  border: 1px solid #DFD2C0;
+  flex-shrink: 0;
+}
+
+.patient-small-name {
+  font-family: var(--font-heading);
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--color-heading);
+  line-height: 1.2;
+}
+
+.patient-small-breed {
+  font-size: 0.74rem;
+  color: var(--color-muted);
+}
+
+.patient-small-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.74rem;
+  color: var(--color-body);
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: 8px;
+  margin-top: 2px;
+}
+
+.patient-small-history-snip {
+  font-size: 0.72rem;
+  color: var(--color-muted);
+  background-color: #FAF5EC;
+  padding: 6px 9px;
+  border-radius: 3px;
+  border: 1px solid #EFE5D6;
+  line-height: 1.35;
+}
+
+.prescription-row-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.prescription-input {
+  width: 100%;
+  padding: 6px 9px;
+  font-size: 0.78rem;
+  border: 1px solid #DFD2C0;
+  border-radius: 3px;
+  background-color: #FFFFFF;
+  color: var(--color-heading);
+  outline: none;
+}
+
+.prescription-input:focus {
+  border-color: var(--color-primary);
+
+}

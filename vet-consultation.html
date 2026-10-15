@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Consultation &amp; medical record — Paw Care</title>
+  <title>Medical Records &amp; Consultations — Paw Care</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -29,7 +29,7 @@
 
     <div class="topbar-right">
       <a href="#support" class="topbar-help">Help &amp; support</a>
-      <a href="vet-overview.html" class="topbar-bell" aria-label="Notifications">
+      <a href="vet-consultation.html" class="topbar-bell" aria-label="Notifications">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
           <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
@@ -60,23 +60,21 @@
           </svg>
           <span>Overview</span>
         </a>
-        <a href="vet-overview.html#schedule" class="sidebar-link">
+        <a href="vet-week-schedule.html" class="sidebar-link">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
             <line x1="16" y1="2" x2="16" y2="6"></line>
             <line x1="8" y1="2" x2="8" y2="6"></line>
             <line x1="3" y1="10" x2="21" y2="10"></line>
           </svg>
-          <span>Appointments</span>
+          <span>Week schedule</span>
         </a>
-        <a href="vet-overview.html#patients" class="sidebar-link">
+        <a href="vet-requests-availability.html" class="sidebar-link">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="4" r="2"></circle>
-            <circle cx="18" cy="8" r="2"></circle>
-            <circle cx="20" cy="16" r="2"></circle>
-            <path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"></path>
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 14 14"></polyline>
           </svg>
-          <span>Patients</span>
+          <span>Request &amp; availability</span>
         </a>
         <a href="vet-consultation.html" class="sidebar-link active">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -94,11 +92,9 @@
       </nav>
 
       <div class="sidebar-care-card">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6E5A4C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-        </svg>
-        <h5>A little care, every day.</h5>
-        <p>We're here for every step of their health journey.</p>
+        <h5 style="margin-top: 0;">Companion Animal Clinic</h5>
+        <p style="margin-bottom: 6px;">Deccan, Pune · General physician, dogs &amp; cats</p>
+        <div style="font-size: 0.7rem; font-weight: 800; color: #5C3D28;">Love. Care. Heal.</div>
       </div>
 
       <a href="signin.html?role=vet" class="sidebar-signout">
@@ -114,46 +110,163 @@
 
     <!-- Main Content -->
     <main class="app-main">
-      <div class="page-breadcrumb">Records / Consultation</div>
+      <div class="page-breadcrumb">Records / Medical Consultations &amp; History</div>
       <div class="page-header-row">
         <div>
-          <h1 class="page-title">Consultation &amp; medical record</h1>
-          <p class="page-subtitle">Bruno’s visit summary, treatment plan, and owner communication for today’s consultation.</p>
+          <h1 class="page-title">Medical Records &amp; Consultations</h1>
+          <p class="page-subtitle">Search patient history, select today's booked appointments, write diagnosis, and prescribe treatments.</p>
         </div>
-        <button type="button" class="btn btn-outline">+ New record</button>
+        <div style="display: flex; gap: 10px;">
+          <a href="vet-overview.html" class="btn btn-outline">&larr; Today's schedule</a>
+          <a href="vet-week-schedule.html" class="btn btn-outline">Week schedule</a>
+        </div>
       </div>
 
-      <div class="grid-profile-layout">
-        <!-- Left Patient Column -->
+      <!-- ==================== 1. SEARCH BAR ==================== -->
+      <div class="records-search-box">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input
+          type="text"
+          id="record-search-input"
+          class="records-search-input"
+          placeholder="Search pet history by pet's name or owner's name (e.g. Bruno, Mishti, Coco, Rohan, Priya, Aarav)..."
+          oninput="handleRecordSearch(this.value)"
+          autocomplete="off"
+        />
+        <button type="button" id="record-search-clear" class="records-search-clear" onclick="clearRecordSearch()" title="Clear search">&times;</button>
+      </div>
+
+      <!-- ==================== 2. TODAY'S BOOKED PATIENTS (SMALL DIVS) ==================== -->
+      <section class="today-patients-section">
+        <div class="today-patients-header">
+          <div>
+            <h2 class="today-patients-title">Today's Booked Appointments</h2>
+            <div style="font-size: 0.74rem; color: var(--color-muted); margin-top: 2px;">
+              Wednesday, 7 October 2026 · Click on any pet below to load full history, write today's diagnosis, and prescribe
+            </div>
+          </div>
+          <span class="badge badge-sand" id="today-patient-count" style="font-weight: 800;">3 patients today</span>
+        </div>
+
+        <div class="today-patients-grid" id="today-patients-grid">
+          <!-- Small Div 1: Bruno -->
+          <div
+            class="today-patient-small-div active"
+            id="small-div-bruno"
+            data-key="bruno"
+            data-pet="Bruno"
+            data-owner="Rohan Patil"
+            onclick="selectPatientRecord('bruno')"
+          >
+            <div class="patient-small-top">
+              <img src="assets/pdf_img_4.jpeg" alt="Bruno" class="patient-small-avatar">
+              <div>
+                <div class="patient-small-name">Bruno</div>
+                <div class="patient-small-breed">Dog · Labrador · 3 years</div>
+              </div>
+            </div>
+            <div class="patient-small-info-row">
+              <span>Owner: <strong>Rohan Patil</strong></span>
+              <span class="badge badge-verified" style="font-size: 0.66rem;">9:00 am · Completed</span>
+            </div>
+            <div class="patient-small-history-snip">
+              <strong>History:</strong> Ear inflammation (28 Aug) · Annual wellness (21 Mar)
+            </div>
+          </div>
+
+          <!-- Small Div 2: Mishti -->
+          <div
+            class="today-patient-small-div"
+            id="small-div-mishti"
+            data-key="mishti"
+            data-pet="Mishti"
+            data-owner="Priya Deshmukh"
+            onclick="selectPatientRecord('mishti')"
+          >
+            <div class="patient-small-top">
+              <img src="assets/cat.jpg" alt="Mishti" class="patient-small-avatar">
+              <div>
+                <div class="patient-small-name">Mishti</div>
+                <div class="patient-small-breed">Cat · Persian · 2 years</div>
+              </div>
+            </div>
+            <div class="patient-small-info-row">
+              <span>Owner: <strong>Priya Deshmukh</strong></span>
+              <span class="badge badge-sand" style="font-size: 0.66rem;">11:30 am · Upcoming</span>
+            </div>
+            <div class="patient-small-history-snip">
+              <strong>History:</strong> FVRCP primary dose (12 Oct) · Deworming (15 May)
+            </div>
+          </div>
+
+          <!-- Small Div 3: Coco -->
+          <div
+            class="today-patient-small-div"
+            id="small-div-coco"
+            data-key="coco"
+            data-pet="Coco"
+            data-owner="Aarav Mehta"
+            onclick="selectPatientRecord('coco')"
+          >
+            <div class="patient-small-top">
+              <img src="assets/pdf_img_2.jpeg" alt="Coco" class="patient-small-avatar">
+              <div>
+                <div class="patient-small-name">Coco</div>
+                <div class="patient-small-breed">Dog · Golden Retriever · 1 year</div>
+              </div>
+            </div>
+            <div class="patient-small-info-row">
+              <span>Owner: <strong>Aarav Mehta</strong></span>
+              <span class="badge badge-sand" style="font-size: 0.66rem;">2:00 pm · Upcoming</span>
+            </div>
+            <div class="patient-small-history-snip">
+              <strong>History:</strong> Post-adoption checkup (14 Apr) · Core vaccines (Jan)
+            </div>
+          </div>
+        </div>
+
+        <div id="no-patients-found" style="display: none; background-color: #FAF5EC; border: 1px dashed #DFD2C0; border-radius: 4px; padding: 22px; text-align: center; color: var(--color-muted); font-size: 0.84rem; margin-top: 10px;">
+          No booked appointments found matching "<span id="search-query-display"></span>". Try searching by another pet name or owner name.
+        </div>
+      </section>
+
+      <!-- ==================== 3. DETAILED PATIENT & CONSULTATION VIEW ==================== -->
+      <div class="grid-profile-layout" id="patient-record-details">
+        
+        <!-- Left Patient Column: Demographics, Allergies & History -->
         <div style="display: flex; flex-direction: column; gap: 18px;">
-          <!-- Patient Info Card -->
+          
+          <!-- Patient Identity Card -->
           <div class="card">
-            <img src="assets/pdf_img_4.jpeg" alt="Bruno" style="width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 3px; margin-bottom: 14px;" />
-            <h2 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800; color: var(--color-heading); margin-bottom: 6px;">Bruno</h2>
+            <img id="detail-pet-photo" src="assets/pdf_img_4.jpeg" alt="Patient" style="width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 4px; margin-bottom: 14px; border: 1px solid #DFD2C0;" />
+            <h2 id="detail-pet-name" style="font-family: var(--font-heading); font-size: 1.3rem; font-weight: 800; color: var(--color-heading); margin-bottom: 6px;">Bruno</h2>
             <div style="margin-bottom: 14px;">
-              <span class="badge badge-sand">Dog · Labrador</span>
+              <span id="detail-pet-badge" class="badge badge-sand">Dog · Labrador</span>
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;">
               <div>
                 <span class="stat-label">Owner</span>
-                <span class="stat-value">Rohan Patil</span>
+                <span id="detail-pet-owner" class="stat-value">Rohan Patil</span>
               </div>
               <div>
                 <span class="stat-label">Age</span>
-                <span class="stat-value">3 years</span>
+                <span id="detail-pet-age" class="stat-value">3 years</span>
               </div>
               <div>
                 <span class="stat-label">Weight</span>
-                <span class="stat-value">28.4 kg</span>
+                <span id="detail-pet-weight" class="stat-value">28.4 kg</span>
               </div>
               <div>
                 <span class="stat-label">Sex</span>
-                <span class="stat-value">Male · Neutered</span>
+                <span id="detail-pet-sex" class="stat-value">Male · Neutered</span>
               </div>
             </div>
 
-            <button type="button" class="btn btn-outline btn-block">Change pet photo</button>
+            <button type="button" class="btn btn-outline btn-block" onclick="alert('Photo update feature ready for clinic media upload.')">Update pet photo</button>
           </div>
 
           <!-- Key Allergy Sand Card -->
@@ -165,95 +278,153 @@
               <path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"></path>
             </svg>
             <div>
-              <h4 style="font-family: var(--font-heading); font-size: 0.8rem; font-weight: 800; color: var(--color-heading); margin-bottom: 3px;">Key allergy</h4>
-              <p style="font-size: 0.72rem; color: var(--color-body); line-height: 1.45;">
-                Chicken protein allergy causing itching and skin irritation.
+              <h4 id="detail-allergy-title" style="font-family: var(--font-heading); font-size: 0.82rem; font-weight: 800; color: var(--color-heading); margin-bottom: 3px;">Key allergy</h4>
+              <p id="detail-allergy-text" style="font-size: 0.74rem; color: var(--color-body); line-height: 1.45;">
+                Chicken protein allergy causing itching and skin irritation. Strictly hypoallergenic diet recommended.
               </p>
             </div>
           </div>
 
-          <!-- Visit Summary Card -->
+          <!-- Medical History & Past Visits Card -->
           <div class="card">
-            <h3 class="card-title" style="margin-bottom: 14px;">Visit summary</h3>
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-              <div>
-                <span class="stat-label">Consultation date</span>
-                <span class="stat-value">7 Oct 2026</span>
+            <div class="card-title-row" style="margin-bottom: 12px;">
+              <h3 class="card-title" style="font-size: 0.96rem;">Medical history log</h3>
+              <span class="badge badge-sand" style="font-size: 0.65rem;">Verified</span>
+            </div>
+            <div id="detail-history-list" class="history-list">
+              <!-- Dynamically populated via script -->
+              <div class="history-item">
+                <div class="history-date">7 Oct 2026</div>
+                <div class="history-title">Ear inflammation follow-up</div>
+                <div class="history-sub">Otitis externa resolving. Prescribed Otomax drops.</div>
               </div>
-              <div>
-                <span class="stat-label">Reason</span>
-                <span class="stat-value">Ear inflammation follow-up</span>
+              <div class="history-item">
+                <div class="history-date">28 Aug 2026</div>
+                <div class="history-title">Mild ear infection &amp; redness</div>
+                <div class="history-sub">Presented with head shaking. Swab confirmed fungal otitis.</div>
               </div>
-              <div>
-                <span class="stat-label">Previous history</span>
-                <span class="stat-value">28 Aug 2026 · Mild ear infection</span>
-              </div>
-              <div>
-                <span class="stat-label">Last annual check</span>
-                <span class="stat-value">21 Mar 2026 · Normal</span>
+              <div class="history-item">
+                <div class="history-date">21 Mar 2026</div>
+                <div class="history-title">Annual wellness examination</div>
+                <div class="history-sub">Overall health excellent. DHPP core booster administered.</div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Right Consultation Form Column -->
+        <!-- Right Consultation Form Column: Diagnosis & Prescribe Options -->
         <div>
-          <!-- Consultation details Card -->
+          
+          <!-- Consultation Details Header Card -->
           <div class="card" style="margin-bottom: 18px;">
-            <h3 class="card-title" style="margin-bottom: 16px;">Consultation details</h3>
+            <div class="card-title-row">
+              <h3 class="card-title">Consultation details</h3>
+              <span class="badge badge-sand" id="detail-visit-status">Today's Appointment</span>
+            </div>
+
             <div class="form-grid-2">
               <div class="form-group">
-                <label class="form-label">Consultation date</label>
+                <label class="form-label" style="font-weight: 700;">Consultation date</label>
                 <input type="text" id="consult-date" class="form-control" value="7 Oct 2026" />
               </div>
               <div class="form-group">
-                <label class="form-label">Consultation time</label>
-                <input type="text" id="consult-time" class="form-control" value="10:30 am" />
+                <label class="form-label" style="font-weight: 700;">Consultation time</label>
+                <input type="text" id="consult-time" class="form-control" value="9:00 am" />
               </div>
             </div>
 
-            <div class="form-group">
-              <label class="form-label">Chief complaint</label>
-              <textarea id="consult-chief-complaint" class="form-control" rows="2">Ear inflammation improving. Owner reports reduced scratching and discharge since the previous course.</textarea>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Diagnosis / notes</label>
-              <textarea id="consult-diagnosis" class="form-control" rows="3">Ear inflammation improving. Continue ear drops as directed and monitor for recurrence. Chicken protein allergy remains a relevant dietary consideration.</textarea>
-            </div>
-
             <div class="form-group" style="margin-bottom: 0;">
-              <label class="form-label">Owner communication</label>
-              <textarea id="consult-communication" class="form-control" rows="3">Continue ear drops as directed. Schedule follow-up on 14 Oct 2026 at 11:00 am. Review vaccination status and confirm the rabies booster request once accepted.</textarea>
+              <label class="form-label" style="font-weight: 700;">Chief complaint / Visit reason</label>
+              <textarea id="consult-chief-complaint" class="form-control" rows="2">Ear inflammation follow-up. Owner reports reduced scratching and discharge since previous drops.</textarea>
             </div>
           </div>
 
-          <!-- Prescription Card -->
+          <!-- ==================== WRITE DIAGNOSIS DONE TODAY ==================== -->
+          <div class="card" style="margin-bottom: 18px; border-left: 4px solid var(--color-primary);">
+            <div class="card-title-row">
+              <div>
+                <h3 class="card-title" style="color: var(--color-heading);">Diagnosis done today</h3>
+                <div style="font-size: 0.74rem; color: var(--color-muted); margin-top: 2px;">Record physical examination observations and clinical findings for today's visit</div>
+              </div>
+              <span class="badge badge-verified">Today's Entry</span>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 14px;">
+              <label class="form-label" style="font-weight: 700; color: var(--color-heading);">
+                Clinical Diagnosis <span style="color: #A33A3A;">*</span>
+              </label>
+              <textarea
+                id="consult-diagnosis"
+                class="form-control"
+                rows="3"
+                style="font-size: 0.85rem; line-height: 1.5;"
+                placeholder="Write the clinical diagnosis done today..."
+              >Otitis externa improving significantly. Right ear canal clear; minimal erythema remaining in left ear. Continue targeted ear drops for 7 days to eliminate residual inflammation.</textarea>
+              <div class="form-helper">This diagnosis will be added to the pet's permanent medical history and shared with the owner.</div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" style="font-weight: 700; color: var(--color-heading);">Clinical observations &amp; vital signs</label>
+              <textarea
+                id="consult-clinical-notes"
+                class="form-control"
+                rows="2"
+                style="font-size: 0.82rem;"
+                placeholder="Observations, temperature, heart rate, weight findings..."
+              >Temperature: 38.4°C. Weight stable at 28.4 kg. Otoscopic inspection reveals 80% reduction in discharge. No sign of systemic infection.</textarea>
+            </div>
+          </div>
+
+          <!-- ==================== OPTION TO PRESCRIBE ==================== -->
           <div class="card" style="margin-bottom: 18px;">
-            <h3 class="card-title" style="margin-bottom: 14px;">Prescription</h3>
-            <table class="data-table">
+            <div class="card-title-row">
+              <div>
+                <h3 class="card-title">Prescription for today</h3>
+                <div style="font-size: 0.74rem; color: var(--color-muted); margin-top: 2px;">Prescribe medications, dosage, duration, and administration instructions</div>
+              </div>
+              <button type="button" class="btn btn-outline btn-sm" onclick="addPrescriptionRow()" style="font-weight: 700;">+ Add medication</button>
+            </div>
+
+            <table class="data-table" id="prescription-table" style="margin-bottom: 8px;">
               <thead>
                 <tr>
-                  <th>MEDICINE</th>
-                  <th>DOSAGE</th>
-                  <th>DURATION</th>
-                  <th>INSTRUCTIONS</th>
+                  <th style="width: 32%;">MEDICINE</th>
+                  <th style="width: 20%;">DOSAGE</th>
+                  <th style="width: 18%;">DURATION</th>
+                  <th style="width: 24%;">INSTRUCTIONS</th>
+                  <th style="width: 6%; text-align: center;"></th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="prescription-table-body">
+                <!-- Dynamically populated or editable -->
                 <tr>
-                  <td>Veterinarian-specified ear drops</td>
-                  <td>3 drops</td>
-                  <td>7 days</td>
-                  <td>In affected ear, once daily</td>
+                  <td><input type="text" class="prescription-input" value="Otomax Ear Drops" /></td>
+                  <td><input type="text" class="prescription-input" value="3 drops" /></td>
+                  <td><input type="text" class="prescription-input" value="7 days" /></td>
+                  <td><input type="text" class="prescription-input" value="In left ear once daily" /></td>
+                  <td style="text-align: center;">
+                    <button type="button" class="btn btn-sm" style="color: #A33A3A; padding: 2px 6px;" onclick="removePrescriptionRow(this)" title="Remove item">&times;</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="text" class="prescription-input" value="Chlorhexidine Cleanser" /></td>
+                  <td><input type="text" class="prescription-input" value="2 ml" /></td>
+                  <td><input type="text" class="prescription-input" value="10 days" /></td>
+                  <td><input type="text" class="prescription-input" value="Clean ear canal prior to drops" /></td>
+                  <td style="text-align: center;">
+                    <button type="button" class="btn btn-sm" style="color: #A33A3A; padding: 2px 6px;" onclick="removePrescriptionRow(this)" title="Remove item">&times;</button>
+                  </td>
                 </tr>
               </tbody>
             </table>
+            <div style="font-size: 0.7rem; color: var(--color-muted); margin-top: 6px;">
+              Click "+ Add medication" above to include additional medicines in today’s digital prescription.
+            </div>
           </div>
 
           <!-- Vaccinations Card -->
           <div class="card" style="margin-bottom: 18px;">
-            <h3 class="card-title" style="margin-bottom: 14px;">Vaccinations</h3>
+            <h3 class="card-title" style="margin-bottom: 14px;">Vaccinations &amp; preventive health</h3>
             <table class="data-table">
               <thead>
                 <tr>
@@ -263,39 +434,44 @@
                   <th>STATUS</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="vaccinations-table-body">
                 <tr>
-                  <td>Rabies</td>
-                  <td>Not administered</td>
-                  <td>9 Oct 2026</td>
+                  <td>Rabies booster</td>
                   <td>Pending acceptance</td>
+                  <td>9 Oct 2026</td>
+                  <td>Pending clinic confirmation</td>
                 </tr>
                 <tr>
-                  <td>DHPP</td>
+                  <td>DHPP Core</td>
                   <td>21 Mar 2026</td>
                   <td>21 Dec 2026</td>
-                  <td>Next due 21 Dec 2026</td>
+                  <td>Up to date</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          <!-- Follow-up & documents Card -->
+          <!-- Follow-up & Owner Communication Card -->
           <div class="card" style="margin-bottom: 18px;">
-            <h3 class="card-title" style="margin-bottom: 14px;">Follow-up &amp; documents</h3>
+            <h3 class="card-title" style="margin-bottom: 14px;">Follow-up &amp; owner communication</h3>
             <div class="form-group">
-              <label class="form-label">Follow-up appointment</label>
-              <textarea id="consult-followup" class="form-control" rows="2">14 Oct 2026 · 11:00 am · Ear follow-up with Dr. Anita Rao</textarea>
+              <label class="form-label" style="font-weight: 700;">Follow-up appointment recommendation</label>
+              <textarea id="consult-followup" class="form-control" rows="2">14 Oct 2026 · 11:00 am · Ear follow-up recheck with Dr. Anita Rao</textarea>
             </div>
             <div class="form-group" style="margin-bottom: 0;">
-              <label class="form-label">Documents</label>
-              <textarea id="consult-documents" class="form-control" rows="2">Consultation note, prescription summary, vaccination status, and follow-up reminder shared with owner.</textarea>
+              <label class="form-label" style="font-weight: 700;">Communication shared with pet owner</label>
+              <textarea id="consult-communication" class="form-control" rows="2">Advised Rohan to maintain strict chicken-free diet. Follow up in 7 days. Rabies booster scheduled for Fri, 9 Oct.</textarea>
             </div>
           </div>
 
-          <div class="form-actions-bar" style="margin-bottom: 18px;">
+          <!-- Action Bar & Feedback -->
+          <div class="form-actions-bar" style="margin-bottom: 14px; display: flex; gap: 10px; align-items: center;">
             <a href="vet-overview.html" class="btn btn-outline">Save draft</a>
-            <button type="button" class="btn btn-primary" onclick="saveConsultationRecord(event)">Save record</button>
+            <button type="button" class="btn btn-primary" onclick="saveConsultationRecord(event)" style="font-weight: 700;">Save medical record &amp; prescription</button>
+          </div>
+
+          <div id="consult-save-toast" style="display: none; background-color: #EBF5EB; border: 1px solid #B8E0BA; border-radius: 4px; padding: 14px 18px; margin-bottom: 18px; color: #1E5E22; font-size: 0.82rem; font-weight: 600;">
+            ✓ Medical record, diagnosis, and prescription saved successfully! The owner will be notified with consultation notes.
           </div>
 
           <!-- Notification guidance Sand Box -->
@@ -307,10 +483,11 @@
             <div>
               <h4 style="font-family: var(--font-heading); font-size: 0.78rem; font-weight: 800; color: var(--color-heading); margin-bottom: 3px;">Notification guidance</h4>
               <p style="font-size: 0.72rem; color: var(--color-body); line-height: 1.45;">
-                Saving this record will update Bruno’s medical history and notify Rohan Patil about the follow-up appointment and prescription instructions.
+                Saving will sync today's diagnosis and prescription directly to the pet's care circle, enabling immediate owner visibility and medication adherence reminders.
               </p>
             </div>
           </div>
+
         </div>
       </div>
 

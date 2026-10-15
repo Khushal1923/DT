@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week Schedule — Paw Care</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ==================== TOP APP NAVBAR ==================== -->
+  <header class="app-topbar">
+    <a href="index.html" class="brand-logo">
+      <div class="logo-box">
+        <svg viewBox="0 0 40 40" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="40" height="40" rx="5" fill="#482B19"/>
+          <circle cx="14.5" cy="14.5" r="2.2" stroke="#FAF5EC" stroke-width="1.6"/>
+          <circle cx="20" cy="12" r="2.2" stroke="#FAF5EC" stroke-width="1.6"/>
+          <circle cx="25.5" cy="14.5" r="2.2" stroke="#FAF5EC" stroke-width="1.6"/>
+          <circle cx="11.5" cy="20" r="2" stroke="#FAF5EC" stroke-width="1.6"/>
+          <path d="M19.8 18.5C16.2 18.5 14 21.2 14.5 24.5C14.9 27 17.3 28 19.8 28C22.3 28 24.7 27 25.1 24.5C25.6 21.2 23.4 18.5 19.8 18.5Z" stroke="#FAF5EC" stroke-width="1.6"/>
+        </svg>
+      </div>
+      <span class="logo-text">Paw Care</span>
+    </a>
+
+    <div class="topbar-right">
+      <a href="#support" class="topbar-help">Help &amp; support</a>
+      <a href="vet-week-schedule.html" class="topbar-bell" aria-label="Notifications">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+      </a>
+      <a href="vet-profile.html" class="topbar-user">
+        <span class="user-avatar-sm">AR</span>
+        <span>Dr. Anita Rao</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </a>
+    </div>
+  </header>
+
+  <!-- ==================== WORKSPACE LAYOUT ==================== -->
+  <div class="app-layout">
+    <!-- Left Sidebar -->
+    <aside class="app-sidebar">
+      <div class="sidebar-role-label">VETERINARIAN</div>
+      <nav class="sidebar-nav">
+        <a href="vet-overview.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span>Overview</span>
+        </a>
+        <a href="vet-week-schedule.html" class="sidebar-link active">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          <span>Week schedule</span>
+        </a>
+        <a href="vet-requests-availability.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 14 14"></polyline>
+          </svg>
+          <span>Request &amp; availability</span>
+        </a>
+        <a href="vet-consultation.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span>Records</span>
+        </a>
+        <a href="vet-profile.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span>My profile</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-care-card">
+        <h5 style="margin-top: 0;">Companion Animal Clinic</h5>
+        <p style="margin-bottom: 6px;">Deccan, Pune · General physician, dogs &amp; cats</p>
+        <div style="font-size: 0.7rem; font-weight: 800; color: #5C3D28;">Love. Care. Heal.</div>
+      </div>
+
+      <a href="signin.html?role=vet" class="sidebar-signout">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+        <span>Sign out</span>
+      </a>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <div class="page-breadcrumb">Wednesday, 7 October 2026 · Week 41</div>
+      <div class="page-header-row">
+        <div>
+          <h1 class="page-title">Week Schedule</h1>
+          <p class="page-subtitle">Schedule for the whole week across all days (5 – 11 October 2026).</p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <a href="vet-overview.html" class="btn btn-outline">&larr; Today's schedule</a>
+          <a href="vet-requests-availability.html" class="btn btn-primary">Request &amp; availability &rarr;</a>
+        </div>
+      </div>
+
+      <!-- ==================== WHOLE WEEK SCHEDULE ==================== -->
+      <section class="card" style="margin-bottom: 24px;">
+        <div class="card-title-row" style="margin-bottom: 14px;">
+          <div>
+            <h2 class="card-title">Schedule for Whole Week</h2>
+            <div style="font-size: 0.76rem; color: var(--color-muted); margin-top: 2px;">Monday, 5 Oct – Sunday, 11 Oct 2026 · 18 total visits scheduled</div>
+          </div>
+          <span class="badge badge-sand" style="font-weight: 800;">Week 41</span>
+        </div>
+
+        <!-- Week Day Selector Strip -->
+        <div class="schedule-week-tabs" id="week-tabs">
+          <button type="button" class="schedule-day-tab active" onclick="filterScheduleDay('all', this)">
+            <span class="schedule-day-name">View</span>
+            <span class="schedule-day-date">All</span>
+            <span class="schedule-day-count">18 visits</span>
+          </button>
+          <button type="button" class="schedule-day-tab" onclick="filterScheduleDay('mon', this)">
+            <span class="schedule-day-name">Mon</span>
+            <span class="schedule-day-date">5 Oct</span>
+            <span class="schedule-day-count">4 visits</span>
+          </button>
+          <button type="button" class="schedule-day-tab" onclick="filterScheduleDay('tue', this)">
+            <span class="schedule-day-name">Tue</span>
+            <span class="schedule-day-date">6 Oct</span>
+            <span class="schedule-day-count">3 visits</span>
+          </button>
+          <button type="button" class="schedule-day-tab" onclick="filterScheduleDay('wed', this)" style="border-color: var(--color-primary); position: relative;">
+            <span class="schedule-day-name" style="color: var(--color-primary); font-weight: 800;">Today</span>
+            <span class="schedule-day-date">7 Oct</span>
+            <span class="schedule-day-count">3 visits</span>
+          </button>
+          <button type="button" class="schedule-day-tab" onclick="filterScheduleDay('thu', this)">
+            <span class="schedule-day-name">Thu</span>
+            <span class="schedule-day-date">8 Oct</span>
+            <span class="schedule-day-count">3 visits</span>
+          </button>
+          <button type="button" class="schedule-day-tab" onclick="filterScheduleDay('fri', this)">
+            <span class="schedule-day-name">Fri</span>
+            <span class="schedule-day-date">9 Oct</span>
+            <span class="schedule-day-count">3 visits</span>
+          </button>
+          <button type="button" class="schedule-day-tab" onclick="filterScheduleDay('sat', this)">
+            <span class="schedule-day-name">Sat</span>
+            <span class="schedule-day-date">10 Oct</span>
+            <span class="schedule-day-count">2 visits</span>
+          </button>
+          <button type="button" class="schedule-day-tab" onclick="filterScheduleDay('sun', this)">
+            <span class="schedule-day-name">Sun</span>
+            <span class="schedule-day-date">11 Oct</span>
+            <span class="schedule-day-count">Closed</span>
+          </button>
+        </div>
+
+        <!-- Weekly Appointments List (Organized Day by Day) -->
+        <div id="weekly-schedule-list">
+
+          <!-- Wednesday: TODAY (Highlighted) -->
+          <div class="schedule-day-group" data-day="wed">
+            <div class="schedule-day-header today">
+              <span class="schedule-day-title">Wednesday, 7 October 2026 (Today)</span>
+              <span class="badge schedule-day-badge">3 visits · 1 completed, 2 upcoming</span>
+            </div>
+
+            <!-- Wed Visit 1 -->
+            <div class="schedule-visit-item today-active">
+              <div>
+                <div style="font-size: 0.74rem; color: var(--color-muted);">9:00 am</div>
+                <span class="badge badge-verified" style="font-size: 0.68rem; margin-top: 3px;">Completed</span>
+              </div>
+              <div>
+                <div style="font-size: 0.88rem; font-weight: 800; color: var(--color-heading);">Bruno · Labrador · 3 years</div>
+                <div style="font-size: 0.75rem; color: var(--color-muted);">Owner: Rohan Patil · Ear inflammation consultation</div>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <a href="vet-consultation.html" class="btn btn-outline btn-sm">Consultation note &rarr;</a>
+              </div>
+            </div>
+
+            <!-- Wed Visit 2 -->
+            <div class="schedule-visit-item">
+              <div>
+                <div style="font-size: 0.74rem; color: var(--color-muted);">11:30 am</div>
+                <span class="badge badge-sand" style="font-size: 0.68rem; margin-top: 3px;">Upcoming</span>
+              </div>
+              <div>
+                <div style="font-size: 0.88rem; font-weight: 800; color: var(--color-heading);">Mishti · Persian cat · 2 years</div>
+                <div style="font-size: 0.75rem; color: var(--color-muted);">Owner: Priya Deshmukh · Vaccination review &amp; checkup</div>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <a href="vet-consultation.html" class="btn btn-primary btn-sm">Start visit</a>
+              </div>
+            </div>
+
+            <!-- Wed Visit 3 -->
+            <div class="schedule-visit-item">
+              <div>
+                <div style="font-size: 0.74rem; color: var(--color-muted);">2:00 pm</div>
+                <span class="badge badge-sand" style="font-size: 0.68rem; margin-top: 3px;">Upcoming</span>
+              </div>
+              <div>
+                <div style="font-size: 0.88rem; font-weight: 800; color: var(--color-heading);">Coco · Golden retriever · 1 year</div>
+                <div style="font-size: 0.75rem; color: var(--color-muted);">Owner: Aarav Mehta · Post-adoption follow-up &amp; diet plan</div>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <a href="vet-consultation.html" class="btn btn-primary btn-sm">Start visit</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Thursday -->
+          <div class="schedule-day-group" data-day="thu">
+            <div class="schedule-day-header">
+              <span class="schedule-day-title">Thursday, 8 October 2026</span>
+              <span class="badge badge-sand">3 visits · Confirmed</span>
+            </div>
+
+            <div class="schedule-visit-item">
+              <div>
+                <div style="font-size: 0.74rem; color: var(--color-muted);">10:00 am</div>
+                <span class="badge badge-sand" style="font-size: 0.68rem; margin-top: 3px;">Confirmed</span>
+              </div>
+              <div>
+                <div style="font-size: 0.88rem; font-weight: 800; color: var(--color-heading);">Bella · Golden retriever · 2 years</div>
+                <div style="font-size: 0.75rem; color: var(--color-muted);">Owner: Ananya Roy · Routine annual wellness examination</div>
+              </div>
+              <span class="badge" style="background-color: #FAF5EC; color: var(--color-heading); border: 1px solid #DFD2C0;">Wellness</span>
+            </div>
+
+            <div class="schedule-visit-item">
+              <div>
+                <div style="font-size: 0.74rem; color: var(--color-muted);">1:30 pm</div>
+                <span class="badge badge-sand" style="font-size: 0.68rem; margin-top: 3px;">Confirmed</span>
+              </div>
+              <div>
+                <div style="font-size: 0.88rem; font-weight: 800; color: var(--color-heading);">Rocky · Boxer · 4 years</div>
+                <div style="font-size: 0.75rem; color: var(--color-muted);">Owner: Sameer Kapoor · Dental scaling follow-up</div>
+              </div>
+              <span class="badge" style="background-color: #FAF5EC; color: var(--color-heading); border: 1px solid #DFD2C0;">Dental</span>
+            </div>
+
+            <div class="schedule-visit-item">
+              <div>
+                <div style="font-size: 0.74rem; color: var(--color-muted);">4:00 pm</div>
+                <span class="badge badge-sand" style="font-size: 0.68rem; margin-top: 3px;">Confirmed</span>
+              </div>
+              <div>
+                <div style="font-size: 0.88rem; font-weight: 800; color: var(--color-heading);">Leo · Ginger cat · 3 years</div>
+                <div style="font-size: 0.75rem; color: var(--color-muted);">Owner: Pooja Joshi · Annual deworming &amp; booster shot</div>
+              </div>
+              <span class="badge" style="background-color: #FAF5EC; color: var(--color-heading); border: 1px solid #DFD2C0;">Vaccination</span>
+            </div>
+          </div>
+
+          <!-- Friday -->
+          <div class="schedule-day-group" data-day="fri">
+            <div class="schedule-day-header">
+              <span class="schedule-day-title">Friday, 9 October 2026</span>
+              <span class="badge badge-sand">3 visits · Confirmed</span>
+            </div>
+
+            <div class="schedule-visit-item">
+              <div>
+                <div style="font-size: 0.74rem; color: var(--color-muted);">9:30 am</div>
+                <span class="badge badge-sand" style="font-size: 0.68rem; margin-top: 3px;">Confirmed</span>
+              </div>
+              <div>
+                <div style="font-size: 0.88rem; font-weight: 800; color: var(--color-heading);">Simba · Beagle · 1 year</div>
+                <div style="font-size: 0.75rem; color: var(--color-muted);">Owner: Tanvi More · Seasonal skin itching &amp; rash review</div>
+              </div>
+              <span class="badge" style="background-color: #FAF5EC; color: var(--color-heading); border: 1px solid #DFD2C0;">Dermatology</span>
+            </div>
+
+            <div class="schedule-visit-item">
+              <div>
+                <div style="font-size: 0.74rem; color: var(--color-muted);">11:00 am</div>
+                <span class="badge badge-sand" style="font-size: 0.68rem; margin-top: 3px;">Confirmed</span>
+              </div>
+              <div>
+                <div style="font-size: 0.88rem; font-weight: 800; color: var(--color-heading);">Max · Siberian Husky · 3 years</div>
+                <div style="font-size: 0.75rem; color: var(--color-muted);">Owner: Arjun Sethi · Left eye redness and discharge</div>
+              </div>
+              <span class="badge" style="background-color: #FAF5EC; color: var(--color-heading); border: 1px solid #DFD2C0;">Ophthalmology</span>
+            </div>
+
+            <div class="schedule-visit-item">
+              <div>
+                <div style="font-size: 0.74rem; color: var(--color-muted);">3:00 pm</div>
+                <span class="badge badge-sand" style="font-size: 0.68rem; margin-top: 3px;">Confirmed</span>
+              </div>
+              <div>
+                <div style="font-size: 0.88rem; font-weight: 800; color: var(--color-heading);">Luna · Indie dog · 4 years</div>
+                <div style="font-size: 0.75rem; color: var(--color-muted);">Owner: Devendra Shinde · Anti-rabies vaccine booster</div>
+              </div>
+              <span class="badge" style="background-color: #FAF5EC; color: var(--color-heading); border: 1px solid #DFD2C0;">Vaccination</span>
+            </div>
+          </div>
+
+          <!-- Saturday -->
+          <div class="schedule-day-group" data-day="sat">
+            <div class="schedule-day-header">
+              <span class="schedule-day-title">Saturday, 10 October 2026</span>
+              <span class="badge badge-sand">2 visits · Confirmed</span>
+            </div>
+
+            <div class="schedule-visit-item">
+              <div>
+                <div style="font-size: 0.74rem; color: var(--color-muted);">10:00 am</div>
+                <span class="badge badge-sand" style="font-size: 0.68rem; margin-top: 3px;">Confirmed</span>
+              </div>
+              <div>
+                <div style="font-size: 0.88rem; font-weight: 800; color: var(--color-heading);">Milo · Labrador puppy · 3 months</div>
+                <div style="font-size: 0.75rem; color: var(--color-muted);">Owner: Rakesh Pawar · Microchip implantation &amp; registration</div>
+              </div>
+              <span class="badge" style="background-color: #FAF5EC; color: var(--color-heading); border: 1px solid #DFD2C0;">Procedure</span>
+            </div>
+
+            <div class="schedule-visit-item">
+              <div>
+                <div style="font-size: 0.74rem; color: var(--color-muted);">12:00 pm</div>
+                <span class="badge badge-sand" style="font-size: 0.68rem; margin-top: 3px;">Confirmed</span>
+              </div>
+              <div>
+                <div style="font-size: 0.88rem; font-weight: 800; color: var(--color-heading);">Daisy · Persian cat · 5 years</div>
+                <div style="font-size: 0.75rem; color: var(--color-muted);">Owner: Manisha Gokhale · Post-operative stitches removal</div>
+              </div>
+              <span class="badge" style="background-color: #FAF5EC; color: var(--color-heading); border: 1px solid #DFD2C0;">Post-Op</span>
+            </div>
+          </div>
+
+          <!-- Sunday -->
+          <div class="schedule-day-group" data-day="sun">
+            <div class="schedule-day-header">
+              <span class="schedule-day-title">Sunday, 11 October 2026</span>
+              <span class="badge badge-sand">Clinic Closed</span>
+            </div>
+
+            <div style="background-color: #FAF5EC; border: 1px dashed #DFD2C0; border-radius: 4px; padding: 16px; text-align: center; font-size: 0.82rem; color: var(--color-muted);">
+              Clinic is closed on Sunday for routine visits. On-call emergency coverage active.
+            </div>
+          </div>
+
+          <!-- Monday (Past) -->
+          <div class="schedule-day-group" data-day="mon">
+            <div class="schedule-day-header">
+              <span class="schedule-day-title">Monday, 5 October 2026</span>
+              <span class="badge badge-verified">4 visits · Completed</span>
+            </div>
+
+            <div class="schedule-visit-item" style="opacity: 0.85;">
+              <div>
+                <div style="font-size: 0.74rem; color: var(--color-muted);">9:00 am</div>
+                <span class="badge badge-verified" style="font-size: 0.68rem; margin-top: 3px;">Completed</span>
+              </div>
+              <div>
+                <div style="font-size: 0.88rem; font-weight: 800; color: var(--color-heading);">Rocky · Beagle · 4 years</div>
+                <div style="font-size: 0.75rem; color: var(--color-muted);">Owner: Amit Verma · Annual booster vaccination</div>
+              </div>
+              <span class="badge badge-sand">Vaccination</span>
+            </div>
+
+            <div class="schedule-visit-item" style="opacity: 0.85;">
+              <div>
+                <div style="font-size: 0.74rem; color: var(--color-muted);">11:30 am</div>
+                <span class="badge badge-verified" style="font-size: 0.68rem; margin-top: 3px;">Completed</span>
+              </div>
+              <div>
+                <div style="font-size: 0.88rem; font-weight: 800; color: var(--color-heading);">Luna · Shih Tzu · 2 years</div>
+                <div style="font-size: 0.75rem; color: var(--color-muted);">Owner: Sneha Kulkarni · Skin allergy check</div>
+              </div>
+              <span class="badge badge-sand">Consultation</span>
+            </div>
+
+            <div class="schedule-visit-item" style="opacity: 0.85;">
+              <div>
+                <div style="font-size: 0.74rem; color: var(--color-muted);">2:00 pm</div>
+                <span class="badge badge-verified" style="font-size: 0.68rem; margin-top: 3px;">Completed</span>
+              </div>
+              <div>
+                <div style="font-size: 0.88rem; font-weight: 800; color: var(--color-heading);">Milo · Tabby cat · 1 year</div>
+                <div style="font-size: 0.75rem; color: var(--color-muted);">Owner: Vikram Joshi · Routine deworming</div>
+              </div>
+              <span class="badge badge-sand">Deworming</span>
+            </div>
+
+            <div class="schedule-visit-item" style="opacity: 0.85;">
+              <div>
+                <div style="font-size: 0.74rem; color: var(--color-muted);">4:30 pm</div>
+                <span class="badge badge-verified" style="font-size: 0.68rem; margin-top: 3px;">Completed</span>
+              </div>
+              <div>
+                <div style="font-size: 0.88rem; font-weight: 800; color: var(--color-heading);">Bella · German Shepherd · 5 years</div>
+                <div style="font-size: 0.75rem; color: var(--color-muted);">Owner: Sunita Deshpande · Limping assessment</div>
+              </div>
+              <span class="badge badge-sand">Orthopedics</span>
+            </div>
+          </div>
+
+          <!-- Tuesday (Past) -->
+          <div class="schedule-day-group" data-day="tue">
+            <div class="schedule-day-header">
+              <span class="schedule-day-title">Tuesday, 6 October 2026</span>
+              <span class="badge badge-verified">3 visits · Completed</span>
+            </div>
+
+            <div class="schedule-visit-item" style="opacity: 0.85;">
+              <div>
+                <div style="font-size: 0.74rem; color: var(--color-muted);">9:30 am</div>
+                <span class="badge badge-verified" style="font-size: 0.68rem; margin-top: 3px;">Completed</span>
+              </div>
+              <div>
+                <div style="font-size: 0.88rem; font-weight: 800; color: var(--color-heading);">Daisy · Pug · 3 years</div>
+                <div style="font-size: 0.75rem; color: var(--color-muted);">Owner: Rahul Nair · Ear cleaning &amp; antibiotic drops</div>
+              </div>
+              <span class="badge badge-sand">Consultation</span>
+            </div>
+
+            <div class="schedule-visit-item" style="opacity: 0.85;">
+              <div>
+                <div style="font-size: 0.74rem; color: var(--color-muted);">11:00 am</div>
+                <span class="badge badge-verified" style="font-size: 0.68rem; margin-top: 3px;">Completed</span>
+              </div>
+              <div>
+                <div style="font-size: 0.88rem; font-weight: 800; color: var(--color-heading);">Simba · Golden Retriever · 4 months</div>
+                <div style="font-size: 0.75rem; color: var(--color-muted);">Owner: Neha Sharma · Puppy health registration</div>
+              </div>
+              <span class="badge badge-sand">Wellness</span>
+            </div>
+
+            <div class="schedule-visit-item" style="opacity: 0.85;">
+              <div>
+                <div style="font-size: 0.74rem; color: var(--color-muted);">3:00 pm</div>
+                <span class="badge badge-verified" style="font-size: 0.68rem; margin-top: 3px;">Completed</span>
+              </div>
+              <div>
+                <div style="font-size: 0.88rem; font-weight: 800; color: var(--color-heading);">Leo · Indie dog · 2 years</div>
+                <div style="font-size: 0.75rem; color: var(--color-muted);">Owner: Karan Singhania · General health check</div>
+              </div>
+              <span class="badge badge-sand">General Checkup</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Banner to Request and Availability -->
+        <div style="margin-top: 20px; background-color: var(--bg-sand); border: 1px solid #E2D5C3; border-radius: 4px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 14px;">
+          <div>
+            <div style="font-size: 0.84rem; font-weight: 800; color: var(--color-heading);">Manage Pending Requests &amp; Slot Availability</div>
+            <div style="font-size: 0.74rem; color: var(--color-muted);">Accept patient booking requests and customize your clinic hours and slot durations.</div>
+          </div>
+          <a href="vet-requests-availability.html" class="btn btn-outline btn-sm" style="font-weight: 700; background-color: #FFFFFF;">Request &amp; availability &rarr;</a>
+        </div>
+      </section>
+
+      <div class="workspace-footer">
+        <strong>Paw Care</strong> · Your patient care circle stays private and secure.
+      </div>
+    </main>
+  </div>
+
+  <!-- Client-side schedule filtering -->
+  <script>
+    function filterScheduleDay(dayKey, tabEl) {
+      document.querySelectorAll('.schedule-day-tab').forEach(t => t.classList.remove('active'));
+      if (tabEl) tabEl.classList.add('active');
+
+      const groups = document.querySelectorAll('.schedule-day-group');
+      if (dayKey === 'all') {
+        groups.forEach(g => g.style.display = 'block');
+      } else {
+        groups.forEach(g => {
+          if (g.getAttribute('data-day') === dayKey) {
+            g.style.display = 'block';
+          } else {
+            g.style.display = 'none';
+          }
+        });
+      }
+    }
+  </script>
+
+  <!-- Supabase Integration -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

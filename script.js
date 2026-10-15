@@ -148,14 +148,19 @@ function selectSlot(btn, slotTime) {
   if (summaryVal) summaryVal.textContent = 'Fri, 9 Oct 2026 · ' + slotTime;
 }
 
-async function acceptRequest() {
+async function acceptRequest(cardId) {
   const actionsDiv = document.getElementById('request-actions');
   const countSpan = document.getElementById('pending-count');
   if (actionsDiv) {
     actionsDiv.innerHTML = '<span class="badge badge-verified">Accepted · Confirmed for Fri, 9 Oct · 10:30 am</span>';
   }
   if (countSpan) {
-    countSpan.textContent = '0 requests';
+    const text = countSpan.textContent.trim();
+    if (text.startsWith('2')) {
+      countSpan.textContent = '1 request';
+    } else {
+      countSpan.textContent = '0 requests';
+    }
   }
 
   if (window.PawCareSupabase) {
@@ -429,6 +434,9 @@ function initSeamlessNavigation() {
       'my-profile.html',
       'book-appointment.html',
       'vet-overview.html',
+      'vet-schedule.html',
+      'vet-week-schedule.html',
+      'vet-requests-availability.html',
       'vet-consultation.html'
     ];
 
@@ -532,3 +540,301 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 5. Initialize Seamless Client-Side Navigation
   initSeamlessNavigation();
 });
+
+// ==========================================================================
+// VETERINARIAN RECORDS: PATIENT SELECTOR, SEARCH & PRESCRIPTION BUILDER
+// ==========================================================================
+
+const patientRecordsData = {
+  bruno: {
+    name: 'Bruno',
+    species: 'Dog',
+    breed: 'Labrador',
+    age: '3 years',
+    weight: '28.4 kg',
+    sex: 'Male · Neutered',
+    owner: 'Rohan Patil',
+    photo: 'assets/pdf_img_4.jpeg',
+    badge: 'Dog · Labrador',
+    allergyTitle: 'Key allergy',
+    allergyText: 'Chicken protein allergy causing itching and skin irritation. Strictly hypoallergenic diet recommended.',
+    consultDate: '7 Oct 2026',
+    consultTime: '9:00 am',
+    status: '9:00 am · Completed',
+    chiefComplaint: 'Ear inflammation follow-up. Owner reports reduced scratching and discharge since previous drops.',
+    diagnosis: 'Otitis externa improving significantly. Right ear canal clear; minimal erythema remaining in left ear. Continue targeted ear drops for 7 days to eliminate residual inflammation.',
+    clinicalNotes: 'Temperature: 38.4°C. Weight stable at 28.4 kg. Otoscopic inspection reveals 80% reduction in discharge. No sign of systemic infection.',
+    prescriptions: [
+      { medicine: 'Otomax Ear Drops', dosage: '3 drops', duration: '7 days', instructions: 'In left ear once daily' },
+      { medicine: 'Chlorhexidine Cleanser', dosage: '2 ml', duration: '10 days', instructions: 'Clean ear canal prior to drops' }
+    ],
+    vaccinations: [
+      { vaccine: 'Rabies booster', date: 'Pending acceptance', nextDue: '9 Oct 2026', status: 'Pending clinic confirmation' },
+      { vaccine: 'DHPP Core', date: '21 Mar 2026', nextDue: '21 Dec 2026', status: 'Up to date' }
+    ],
+    followup: '14 Oct 2026 · 11:00 am · Ear follow-up recheck with Dr. Anita Rao',
+    communication: 'Advised Rohan to maintain strict chicken-free diet. Follow up in 7 days. Rabies booster scheduled for Fri, 9 Oct.',
+    history: [
+      { date: '7 Oct 2026', title: 'Ear inflammation follow-up', desc: 'Otitis externa resolving. Prescribed Otomax drops.' },
+      { date: '28 Aug 2026', title: 'Mild ear infection & redness', desc: 'Presented with head shaking. Swab confirmed fungal otitis.' },
+      { date: '21 Mar 2026', title: 'Annual wellness examination', desc: 'Overall health excellent. DHPP core booster administered.' }
+    ]
+  },
+  mishti: {
+    name: 'Mishti',
+    species: 'Cat',
+    breed: 'Persian cat',
+    age: '2 years',
+    weight: '4.2 kg',
+    sex: 'Female · Spayed',
+    owner: 'Priya Deshmukh',
+    photo: 'assets/cat.jpg',
+    badge: 'Cat · Persian',
+    allergyTitle: 'Key sensitivity',
+    allergyText: 'Flea saliva hypersensitivity. Requires regular monthly preventative spot-on treatments.',
+    consultDate: '7 Oct 2026',
+    consultTime: '11:30 am',
+    status: '11:30 am · Upcoming',
+    chiefComplaint: 'Annual vaccination review and routine feline health examination.',
+    diagnosis: 'Healthy feline on physical examination. Clear eyes, ears, and lungs; mild tartar on upper premolars. Due for annual FVRCP booster today.',
+    clinicalNotes: 'Temperature: 38.6°C. Heart rate: 160 bpm. Mucous membranes pink. Abdominal palpation unremarkable. Hydration normal.',
+    prescriptions: [
+      { medicine: 'FVRCP Feline Booster', dosage: '1 vial (0.5 ml)', duration: 'Single dose', instructions: 'Administered subcutaneously today' },
+      { medicine: 'Revolution Plus Spot-On', dosage: '1 pipette (4.2 kg)', duration: 'Monthly', instructions: 'Apply topically to back of neck' }
+    ],
+    vaccinations: [
+      { vaccine: 'FVRCP (Rhinotracheitis)', date: '7 Oct 2026', nextDue: '7 Oct 2027', status: 'Administered today' },
+      { vaccine: 'Rabies Feline', date: '12 Oct 2025', nextDue: '12 Oct 2026', status: 'Due next week' }
+    ],
+    followup: '12 Oct 2026 · 10:00 am · Annual Rabies booster appointment',
+    communication: 'Advised Priya on home dental brushing routine for cats and monthly flea preventative application schedule.',
+    history: [
+      { date: '7 Oct 2026', title: 'Vaccination review & checkup', desc: 'Annual wellness check; FVRCP booster administered.' },
+      { date: '15 May 2026', title: 'Deworming & hairball check', desc: 'Deworming paste administered; hairball diet recommended.' },
+      { date: '12 Oct 2025', title: 'Primary feline vaccination series', desc: 'FVRCP + Rabies first round completed with no adverse reactions.' }
+    ]
+  },
+  coco: {
+    name: 'Coco',
+    species: 'Dog',
+    breed: 'Golden Retriever',
+    age: '1 year',
+    weight: '24.1 kg',
+    sex: 'Male · Intact',
+    owner: 'Aarav Mehta',
+    photo: 'assets/pdf_img_2.jpeg',
+    badge: 'Dog · Golden Retriever',
+    allergyTitle: 'No known allergies',
+    allergyText: 'No known drug or dietary allergies recorded to date.',
+    consultDate: '7 Oct 2026',
+    consultTime: '2:00 pm',
+    status: '2:00 pm · Upcoming',
+    chiefComplaint: 'Routine post-adoption wellness follow-up and dietary plan consultation.',
+    diagnosis: 'Excellent overall physical condition. Healthy coat and skin. Body condition score 5/9 (ideal). Weight gain optimal for juvenile Golden Retriever.',
+    clinicalNotes: 'Temperature: 38.2°C. Auscultation clear. Musculoskeletal development symmetrical. Demeanor friendly and alert.',
+    prescriptions: [
+      { medicine: 'Omega-3 Fish Oil Supplement', dosage: '2 capsules', duration: '30 days', instructions: 'Give with morning meal for coat health' },
+      { medicine: 'Simparica Trio Chewable', dosage: '1 tablet (20-40 kg)', duration: 'Monthly', instructions: 'Chewable tablet for tick, flea & heartworm' }
+    ],
+    vaccinations: [
+      { vaccine: 'Bordetella Oral', date: '14 Apr 2026', nextDue: '14 Apr 2027', status: 'Up to date' },
+      { vaccine: 'DHPP Annual', date: '15 Jan 2026', nextDue: '15 Jan 2027', status: 'Up to date' }
+    ],
+    followup: '7 Jan 2027 · 2:00 pm · Annual core vaccination and neutering consultation',
+    communication: 'Provided Aarav with portion guide for juvenile Golden Retrievers and answered training nutrition queries.',
+    history: [
+      { date: '7 Oct 2026', title: 'Post-adoption wellness & diet', desc: 'Ideal body condition score. Nutrition plan provided.' },
+      { date: '14 Apr 2026', title: 'Adoption health screening', desc: 'Health certificate issued. Bordetella vaccine administered.' },
+      { date: '15 Jan 2026', title: 'Puppy core vaccination completion', desc: 'DHPP booster and microchip check passed.' }
+    ]
+  }
+};
+
+let currentRecordKey = 'bruno';
+
+function selectPatientRecord(petKey) {
+  const patient = patientRecordsData[petKey];
+  if (!patient) return;
+
+  currentRecordKey = petKey;
+
+  // 1. Highlight active small div
+  document.querySelectorAll('.today-patient-small-div').forEach(div => {
+    div.classList.remove('active');
+  });
+  const activeDiv = document.getElementById(`small-div-${petKey}`);
+  if (activeDiv) activeDiv.classList.add('active');
+
+  // 2. Update Left Patient Column
+  const photoEl = document.getElementById('detail-pet-photo');
+  const nameEl = document.getElementById('detail-pet-name');
+  const badgeEl = document.getElementById('detail-pet-badge');
+  const ownerEl = document.getElementById('detail-pet-owner');
+  const ageEl = document.getElementById('detail-pet-age');
+  const weightEl = document.getElementById('detail-pet-weight');
+  const sexEl = document.getElementById('detail-pet-sex');
+  const allergyTitleEl = document.getElementById('detail-allergy-title');
+  const allergyTextEl = document.getElementById('detail-allergy-text');
+
+  if (photoEl) photoEl.src = patient.photo;
+  if (nameEl) nameEl.textContent = patient.name;
+  if (badgeEl) badgeEl.textContent = patient.badge;
+  if (ownerEl) ownerEl.textContent = patient.owner;
+  if (ageEl) ageEl.textContent = patient.age;
+  if (weightEl) weightEl.textContent = patient.weight;
+  if (sexEl) sexEl.textContent = patient.sex;
+  if (allergyTitleEl) allergyTitleEl.textContent = patient.allergyTitle;
+  if (allergyTextEl) allergyTextEl.textContent = patient.allergyText;
+
+  // 3. Update History List
+  const historyListEl = document.getElementById('detail-history-list');
+  if (historyListEl && patient.history) {
+    historyListEl.innerHTML = patient.history.map(item => `
+      <div class="history-item">
+        <div class="history-date">${item.date}</div>
+        <div class="history-title">${item.title}</div>
+        <div class="history-sub">${item.desc}</div>
+      </div>
+    `).join('');
+  }
+
+  // 4. Update Consultation Details
+  const statusEl = document.getElementById('detail-visit-status');
+  const dateEl = document.getElementById('consult-date');
+  const timeEl = document.getElementById('consult-time');
+  const complaintEl = document.getElementById('consult-chief-complaint');
+  const diagEl = document.getElementById('consult-diagnosis');
+  const notesEl = document.getElementById('consult-clinical-notes');
+  const followupEl = document.getElementById('consult-followup');
+  const commEl = document.getElementById('consult-communication');
+
+  if (statusEl) statusEl.textContent = patient.status;
+  if (dateEl) dateEl.value = patient.consultDate;
+  if (timeEl) timeEl.value = patient.consultTime;
+  if (complaintEl) complaintEl.value = patient.chiefComplaint;
+  if (diagEl) diagEl.value = patient.diagnosis;
+  if (notesEl) notesEl.value = patient.clinicalNotes;
+  if (followupEl) followupEl.value = patient.followup;
+  if (commEl) commEl.value = patient.communication;
+
+  // 5. Update Prescription Table
+  const prescBody = document.getElementById('prescription-table-body');
+  if (prescBody && patient.prescriptions) {
+    prescBody.innerHTML = patient.prescriptions.map(p => `
+      <tr>
+        <td><input type="text" class="prescription-input" value="${p.medicine}" /></td>
+        <td><input type="text" class="prescription-input" value="${p.dosage}" /></td>
+        <td><input type="text" class="prescription-input" value="${p.duration}" /></td>
+        <td><input type="text" class="prescription-input" value="${p.instructions}" /></td>
+        <td style="text-align: center;">
+          <button type="button" class="btn btn-sm" style="color: #A33A3A; padding: 2px 6px;" onclick="removePrescriptionRow(this)" title="Remove item">&times;</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // 6. Update Vaccinations Table
+  const vaccBody = document.getElementById('vaccinations-table-body');
+  if (vaccBody && patient.vaccinations) {
+    vaccBody.innerHTML = patient.vaccinations.map(v => `
+      <tr>
+        <td>${v.vaccine}</td>
+        <td>${v.date}</td>
+        <td>${v.nextDue}</td>
+        <td>${v.status}</td>
+      </tr>
+    `).join('');
+  }
+
+  // Hide toast when switching patient
+  const toastEl = document.getElementById('consult-save-toast');
+  if (toastEl) toastEl.style.display = 'none';
+}
+
+function handleRecordSearch(query) {
+  const q = (query || '').trim().toLowerCase();
+  const clearBtn = document.getElementById('record-search-clear');
+  const smallDivs = document.querySelectorAll('.today-patient-small-div');
+  const noFoundEl = document.getElementById('no-patients-found');
+  const queryDisplay = document.getElementById('search-query-display');
+
+  if (clearBtn) {
+    clearBtn.style.display = q ? 'block' : 'none';
+  }
+
+  let matchCount = 0;
+  smallDivs.forEach(div => {
+    const petName = (div.getAttribute('data-pet') || '').toLowerCase();
+    const ownerName = (div.getAttribute('data-owner') || '').toLowerCase();
+
+    if (!q || petName.includes(q) || ownerName.includes(q)) {
+      div.style.display = 'flex';
+      matchCount++;
+    } else {
+      div.style.display = 'none';
+    }
+  });
+
+  if (noFoundEl) {
+    if (matchCount === 0 && q) {
+      noFoundEl.style.display = 'block';
+      if (queryDisplay) queryDisplay.textContent = query;
+    } else {
+      noFoundEl.style.display = 'none';
+    }
+  }
+}
+
+function clearRecordSearch() {
+  const searchInput = document.getElementById('record-search-input');
+  if (searchInput) searchInput.value = '';
+  handleRecordSearch('');
+  if (searchInput) searchInput.focus();
+}
+
+function addPrescriptionRow() {
+  const prescBody = document.getElementById('prescription-table-body');
+  if (!prescBody) return;
+
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" class="prescription-input" placeholder="e.g. Amoxicillin Drops" /></td>
+    <td><input type="text" class="prescription-input" placeholder="e.g. 5 mg / 2.5 ml" /></td>
+    <td><input type="text" class="prescription-input" placeholder="e.g. 5 days" /></td>
+    <td><input type="text" class="prescription-input" placeholder="e.g. Twice daily with meals" /></td>
+    <td style="text-align: center;">
+      <button type="button" class="btn btn-sm" style="color: #A33A3A; padding: 2px 6px;" onclick="removePrescriptionRow(this)" title="Remove item">&times;</button>
+    </td>
+  `;
+  prescBody.appendChild(tr);
+
+  const firstInput = tr.querySelector('input');
+  if (firstInput) firstInput.focus();
+}
+
+function removePrescriptionRow(btn) {
+  const row = btn.closest('tr');
+  if (row) row.remove();
+}
+
+function saveConsultationRecord(e) {
+  if (e) e.preventDefault();
+  const patient = patientRecordsData[currentRecordKey];
+  const petName = patient ? patient.name : 'Patient';
+
+  // Read current diagnosis and store in memory
+  const diagInput = document.getElementById('consult-diagnosis');
+  if (diagInput && patient) {
+    patient.diagnosis = diagInput.value.trim();
+  }
+
+  const toastEl = document.getElementById('consult-save-toast');
+  if (toastEl) {
+    toastEl.style.display = 'block';
+    toastEl.innerHTML = `✓ Medical record, diagnosis, and prescription saved successfully for <strong>${petName}</strong>! Shared with care circle.`;
+    setTimeout(() => {
+      toastEl.style.display = 'none';
+    }, 4500);
+  }
+}
+
