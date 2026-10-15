@@ -173,7 +173,7 @@
             <div class="form-grid-2">
               <div class="form-group" style="margin-bottom: 0;">
                 <label class="form-label">Date</label>
-                <select class="form-control">
+                <select class="form-control" id="booking-date-select">
                   <option selected>Fri, 9 Oct 2026</option>
                   <option>Sat, 10 Oct 2026</option>
                   <option>Mon, 12 Oct 2026</option>
@@ -211,7 +211,7 @@
             <h3 class="card-title" style="margin-bottom: 14px;">Reason &amp; review</h3>
             <div class="form-group" style="margin-bottom: 4px;">
               <label class="form-label">Reason for visit</label>
-              <input type="text" class="form-control" value="Rabies booster" />
+              <input type="text" id="booking-reason-input" class="form-control" value="Rabies booster" />
             </div>
 
             <div class="booking-stepper">
@@ -240,7 +240,7 @@
 
           <div class="form-actions-bar">
             <a href="vet-profile.html" class="btn btn-outline">Cancel</a>
-            <a href="booking-sent.html" class="btn btn-primary">Send booking request</a>
+            <button type="button" class="btn btn-primary" onclick="submitBookingRequest(event)">Send booking request</button>
           </div>
         </div>
 
@@ -292,6 +292,9 @@
     </main>
   </div>
 
+  <!-- Supabase Integration -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

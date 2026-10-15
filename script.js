@@ -1,4 +1,4 @@
-// Paw Care — Complete Interactive Logic & Page Navigation
+// Paw Care — Complete Interactive Logic, Supabase Integration & Page Navigation
 
 let currentSignInRole = 'owner';
 
@@ -33,8 +33,32 @@ function switchRole(role) {
   }
 }
 
-function handleSignIn(e) {
-  e.preventDefault();
+async function handleSignIn(e) {
+  if (e) e.preventDefault();
+  const emailInput = document.getElementById('signin-email');
+  const passInput = document.getElementById('signin-password');
+  const email = emailInput ? emailInput.value : '';
+  const pass = passInput ? passInput.value : '';
+
+  if (window.PawCareSupabase) {
+    try {
+      const res = await window.PawCareSupabase.auth.signIn(email, pass, currentSignInRole);
+      if (res && res.success) {
+        setTimeout(() => {
+          if (currentSignInRole === 'vet') {
+            window.location.href = 'vet-overview.html';
+          } else {
+            window.location.href = 'overview.html';
+          }
+        }, 400);
+        return;
+      }
+    } catch (err) {
+      console.warn('Sign in handler exception', err);
+    }
+  }
+
+  // Fallback redirect
   if (currentSignInRole === 'vet') {
     window.location.href = 'vet-overview.html';
   } else {
@@ -56,7 +80,7 @@ function selectSlot(btn, slotTime) {
   if (summaryVal) summaryVal.textContent = 'Fri, 9 Oct 2026 · ' + slotTime;
 }
 
-function acceptRequest() {
+async function acceptRequest() {
   const actionsDiv = document.getElementById('request-actions');
   const countSpan = document.getElementById('pending-count');
   if (actionsDiv) {
@@ -65,9 +89,148 @@ function acceptRequest() {
   if (countSpan) {
     countSpan.textContent = '0 requests';
   }
+
+  if (window.PawCareSupabase) {
+    await window.PawCareSupabase.appointments.updateStatus('a1111111-1111-1111-1111-111111111111', 'confirmed');
+  }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+// Save Pet Profile to Supabase
+async function savePetProfile(e) {
+  if (e) e.preventDefault();
+  const nameEl = document.getElementById('pet-name');
+  const speciesEl = document.getElementById('pet-species');
+  const breedEl = document.getElementById('pet-breed');
+  const ageEl = document.getElementById('pet-age');
+  const weightEl = document.getElementById('pet-weight');
+  const sexEl = document.getElementById('pet-sex');
+  const microchipEl = document.getElementById('pet-microchip');
+  const allergiesEl = document.getElementById('pet-allergies');
+  const illnessEl = document.getElementById('pet-past-illness');
+
+  const updates = {
+    name: nameEl ? nameEl.value : 'Bruno',
+    species: speciesEl ? speciesEl.value : 'Dog',
+    breed: breedEl ? breedEl.value : 'Labrador',
+    age: ageEl ? ageEl.value : '3 years',
+    weight: weightEl ? parseFloat(weightEl.value) || 28.4 : 28.4,
+    sex: sexEl ? sexEl.value : 'Male · Neutered',
+    microchip: microchipEl ? microchipEl.value : 'Not added',
+    allergies: allergiesEl ? allergiesEl.value : '',
+    past_illness: illnessEl ? illnessEl.value : ''
+  };
+
+  if (window.PawCareSupabase) {
+    await window.PawCareSupabase.pets.update('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', updates);
+  }
+
+  setTimeout(() => {
+    window.location.href = 'overview.html';
+  }, 600);
+}
+
+// Save User Profile to Supabase
+async function saveUserProfile(e) {
+  if (e) e.preventDefault();
+  const firstEl = document.getElementById('profile-first-name');
+  const lastEl = document.getElementById('profile-last-name');
+  const emailEl = document.getElementById('profile-email');
+  const phoneEl = document.getElementById('profile-phone');
+  const addressEl = document.getElementById('profile-address');
+  const cityEl = document.getElementById('profile-city');
+  const postalEl = document.getElementById('profile-postal');
+
+  const updates = {
+    first_name: firstEl ? firstEl.value : 'Rohan',
+    last_name: lastEl ? lastEl.value : 'Patil',
+    email: emailEl ? emailEl.value : 'rohan.patil@example.com',
+    phone: phoneEl ? phoneEl.value : '+91 98765 43210',
+    address: addressEl ? addressEl.value : '18 Prabhat Road, Deccan Gymkhana',
+    city: cityEl ? cityEl.value : 'Pune',
+    postal_code: postalEl ? postalEl.value : '411004'
+  };
+
+  if (window.PawCareSupabase) {
+    await window.PawCareSupabase.profiles.update('00000000-0000-0000-0000-000000000001', updates);
+  }
+
+  setTimeout(() => {
+    window.location.href = 'overview.html';
+  }, 600);
+}
+
+// Submit Booking Request to Supabase
+async function submitBookingRequest(e) {
+  if (e) e.preventDefault();
+  const dateEl = document.getElementById('booking-date-select');
+  const timeEl = document.getElementById('booking-time-select');
+  const reasonEl = document.getElementById('booking-reason-input');
+
+  const appointmentData = {
+    date: dateEl ? dateEl.value : 'Fri, 9 Oct 2026',
+    time: timeEl ? timeEl.value : '10:30 am',
+    reason: reasonEl ? reasonEl.value : 'Rabies booster',
+    status: 'awaiting_acceptance'
+  };
+
+  if (window.PawCareSupabase) {
+    await window.PawCareSupabase.appointments.create(appointmentData);
+  }
+
+  setTimeout(() => {
+    window.location.href = 'booking-sent.html';
+  }, 500);
+}
+
+// Save Consultation Record to Supabase
+async function saveConsultationRecord(e) {
+  if (e) e.preventDefault();
+  const dateEl = document.getElementById('consult-date');
+  const timeEl = document.getElementById('consult-time');
+  const complaintEl = document.getElementById('consult-chief-complaint');
+  const diagnosisEl = document.getElementById('consult-diagnosis');
+  const commEl = document.getElementById('consult-communication');
+  const followupEl = document.getElementById('consult-followup');
+
+  const recordData = {
+    consultation_date: dateEl ? dateEl.value : '7 Oct 2026',
+    consultation_time: timeEl ? timeEl.value : '10:30 am',
+    chief_complaint: complaintEl ? complaintEl.value : '',
+    diagnosis_notes: diagnosisEl ? diagnosisEl.value : '',
+    owner_communication: commEl ? commEl.value : '',
+    follow_up_appointment: followupEl ? followupEl.value : '',
+    prescriptions: [
+      { medicine: 'Veterinarian-specified ear drops', dosage: '3 drops', duration: '7 days', instructions: 'In affected ear, once daily' }
+    ],
+    vaccinations: [
+      { vaccine: 'Rabies', date: 'Not administered', next_due: '9 Oct 2026', status: 'Pending acceptance' },
+      { vaccine: 'DHPP', date: '21 Mar 2026', next_due: '21 Dec 2026', status: 'Next due 21 Dec 2026' }
+    ]
+  };
+
+  if (window.PawCareSupabase) {
+    await window.PawCareSupabase.medicalRecords.create(recordData);
+  }
+
+  setTimeout(() => {
+    window.location.href = 'vet-overview.html';
+  }, 600);
+}
+
+// Toggle Notification Preference
+async function handlePreferenceToggle(prefKey, toggleEl) {
+  if (!toggleEl) return;
+  toggleEl.classList.toggle('on');
+  const isOn = toggleEl.classList.contains('on');
+
+  if (window.PawCareSupabase) {
+    const updates = {};
+    updates[prefKey] = isOn;
+    await window.PawCareSupabase.notificationPreferences.update('00000000-0000-0000-0000-000000000001', updates);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
   // 1. Check URL query parameter for ?role=vet on Sign In page
   const params = new URLSearchParams(window.location.search);
   if (params.get('role') === 'vet') {
@@ -101,4 +264,79 @@ document.addEventListener('DOMContentLoaded', () => {
       this.classList.add('active');
     });
   });
+
+  // 4. Attach Sign Out to sidebar signout links
+  const signoutLinks = document.querySelectorAll('.sidebar-signout');
+  signoutLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (window.PawCareSupabase) {
+        window.PawCareSupabase.auth.signOut();
+      } else {
+        window.location.href = 'signin.html';
+      }
+    });
+  });
+
+  // 5. Hydrate Pet Profile form if present
+  if (document.getElementById('pet-name') && window.PawCareSupabase) {
+    try {
+      const pet = await window.PawCareSupabase.pets.get('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb');
+      if (pet) {
+        if (document.getElementById('pet-name')) document.getElementById('pet-name').value = pet.name || '';
+        if (document.getElementById('pet-breed')) document.getElementById('pet-breed').value = pet.breed || '';
+        if (document.getElementById('pet-age')) document.getElementById('pet-age').value = pet.age || '';
+        if (document.getElementById('pet-weight')) document.getElementById('pet-weight').value = pet.weight || '';
+        if (document.getElementById('pet-allergies')) document.getElementById('pet-allergies').value = pet.allergies || '';
+        if (document.getElementById('pet-past-illness')) document.getElementById('pet-past-illness').value = pet.past_illness || '';
+      }
+    } catch (e) {
+      console.warn('Could not hydrate pet profile', e);
+    }
+  }
+
+  // 6. Hydrate User Profile form if present
+  if (document.getElementById('profile-first-name') && window.PawCareSupabase) {
+    try {
+      const user = window.PawCareSupabase.auth.getCurrentUser();
+      const profile = await window.PawCareSupabase.profiles.get(user?.id || '00000000-0000-0000-0000-000000000001');
+      if (profile) {
+        if (document.getElementById('profile-first-name')) document.getElementById('profile-first-name').value = profile.first_name || '';
+        if (document.getElementById('profile-last-name')) document.getElementById('profile-last-name').value = profile.last_name || '';
+        if (document.getElementById('profile-email')) document.getElementById('profile-email').value = profile.email || '';
+        if (document.getElementById('profile-phone')) document.getElementById('profile-phone').value = profile.phone || '';
+        if (document.getElementById('profile-address')) document.getElementById('profile-address').value = profile.address || '';
+        if (document.getElementById('profile-city')) document.getElementById('profile-city').value = profile.city || '';
+        if (document.getElementById('profile-postal')) document.getElementById('profile-postal').value = profile.postal_code || '';
+      }
+    } catch (e) {
+      console.warn('Could not hydrate user profile', e);
+    }
+  }
+
+  // 7. Wire Notification Preferences toggles if on reminders page
+  const prefToggles = document.querySelectorAll('.pref-row .toggle-switch');
+  if (prefToggles && prefToggles.length >= 4) {
+    const prefKeys = ['email_reminders', 'sms_reminders', 'push_notifications', 'weekly_digest'];
+    prefToggles.forEach((tog, idx) => {
+      // Remove any inline onclick to avoid double toggling
+      tog.removeAttribute('onclick');
+      tog.addEventListener('click', () => {
+        handlePreferenceToggle(prefKeys[idx], tog);
+      });
+    });
+  }
+
+  // 8. Update topbar user name if session exists
+  if (window.PawCareSupabase) {
+    const user = window.PawCareSupabase.auth.getCurrentUser();
+    if (user && user.first_name) {
+      const userSpan = document.querySelector('.topbar-user span:not(.user-avatar-sm)');
+      const avatarSpan = document.querySelector('.topbar-user .user-avatar-sm');
+      if (userSpan) userSpan.textContent = `${user.first_name} ${user.last_name || ''}`;
+      if (avatarSpan) {
+        avatarSpan.textContent = `${user.first_name[0] || 'R'}${user.last_name ? user.last_name[0] : 'P'}`;
+      }
+    }
+  }
 });

@@ -204,27 +204,27 @@
             <div class="form-grid-2">
               <div class="form-group">
                 <label class="form-label">Consultation date</label>
-                <input type="text" class="form-control" value="7 Oct 2026" />
+                <input type="text" id="consult-date" class="form-control" value="7 Oct 2026" />
               </div>
               <div class="form-group">
                 <label class="form-label">Consultation time</label>
-                <input type="text" class="form-control" value="10:30 am" />
+                <input type="text" id="consult-time" class="form-control" value="10:30 am" />
               </div>
             </div>
 
             <div class="form-group">
               <label class="form-label">Chief complaint</label>
-              <textarea class="form-control" rows="2">Ear inflammation improving. Owner reports reduced scratching and discharge since the previous course.</textarea>
+              <textarea id="consult-chief-complaint" class="form-control" rows="2">Ear inflammation improving. Owner reports reduced scratching and discharge since the previous course.</textarea>
             </div>
 
             <div class="form-group">
               <label class="form-label">Diagnosis / notes</label>
-              <textarea class="form-control" rows="3">Ear inflammation improving. Continue ear drops as directed and monitor for recurrence. Chicken protein allergy remains a relevant dietary consideration.</textarea>
+              <textarea id="consult-diagnosis" class="form-control" rows="3">Ear inflammation improving. Continue ear drops as directed and monitor for recurrence. Chicken protein allergy remains a relevant dietary consideration.</textarea>
             </div>
 
             <div class="form-group" style="margin-bottom: 0;">
               <label class="form-label">Owner communication</label>
-              <textarea class="form-control" rows="3">Continue ear drops as directed. Schedule follow-up on 14 Oct 2026 at 11:00 am. Review vaccination status and confirm the rabies booster request once accepted.</textarea>
+              <textarea id="consult-communication" class="form-control" rows="3">Continue ear drops as directed. Schedule follow-up on 14 Oct 2026 at 11:00 am. Review vaccination status and confirm the rabies booster request once accepted.</textarea>
             </div>
           </div>
 
@@ -285,17 +285,17 @@
             <h3 class="card-title" style="margin-bottom: 14px;">Follow-up &amp; documents</h3>
             <div class="form-group">
               <label class="form-label">Follow-up appointment</label>
-              <textarea class="form-control" rows="2">14 Oct 2026 · 11:00 am · Ear follow-up with Dr. Anita Rao</textarea>
+              <textarea id="consult-followup" class="form-control" rows="2">14 Oct 2026 · 11:00 am · Ear follow-up with Dr. Anita Rao</textarea>
             </div>
             <div class="form-group" style="margin-bottom: 0;">
               <label class="form-label">Documents</label>
-              <textarea class="form-control" rows="2">Consultation note, prescription summary, vaccination status, and follow-up reminder shared with owner.</textarea>
+              <textarea id="consult-documents" class="form-control" rows="2">Consultation note, prescription summary, vaccination status, and follow-up reminder shared with owner.</textarea>
             </div>
           </div>
 
           <div class="form-actions-bar" style="margin-bottom: 18px;">
             <a href="vet-overview.html" class="btn btn-outline">Save draft</a>
-            <a href="vet-overview.html" class="btn btn-primary">Save record</a>
+            <button type="button" class="btn btn-primary" onclick="saveConsultationRecord(event)">Save record</button>
           </div>
 
           <!-- Notification guidance Sand Box -->
@@ -320,6 +320,9 @@
     </main>
   </div>
 
+  <!-- Supabase Integration -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

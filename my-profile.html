@@ -161,35 +161,35 @@
             <div class="form-grid-2">
               <div class="form-group">
                 <label class="form-label">First name</label>
-                <input type="text" class="form-control" value="Rohan" />
+                <input type="text" id="profile-first-name" class="form-control" value="Rohan" />
               </div>
               <div class="form-group">
                 <label class="form-label">Last name</label>
-                <input type="text" class="form-control" value="Patil" />
+                <input type="text" id="profile-last-name" class="form-control" value="Patil" />
               </div>
               <div class="form-group">
                 <label class="form-label">Email address</label>
-                <input type="email" class="form-control" value="rohan.patil@example.com" />
+                <input type="email" id="profile-email" class="form-control" value="rohan.patil@example.com" />
               </div>
               <div class="form-group">
                 <label class="form-label">Mobile number</label>
-                <input type="text" class="form-control" value="+91 98765 43210" />
+                <input type="text" id="profile-phone" class="form-control" value="+91 98765 43210" />
               </div>
             </div>
 
             <div class="form-group">
               <label class="form-label">Address</label>
-              <input type="text" class="form-control" value="18 Prabhat Road, Deccan Gymkhana" />
+              <input type="text" id="profile-address" class="form-control" value="18 Prabhat Road, Deccan Gymkhana" />
             </div>
 
             <div class="form-grid-2">
               <div class="form-group" style="margin-bottom: 0;">
                 <label class="form-label">City</label>
-                <input type="text" class="form-control" value="Pune" />
+                <input type="text" id="profile-city" class="form-control" value="Pune" />
               </div>
               <div class="form-group" style="margin-bottom: 0;">
                 <label class="form-label">Postal code</label>
-                <input type="text" class="form-control" value="411004" />
+                <input type="text" id="profile-postal" class="form-control" value="411004" />
               </div>
             </div>
           </div>
@@ -205,7 +205,7 @@
 
           <div class="form-actions-bar">
             <a href="overview.html" class="btn btn-outline">Cancel</a>
-            <a href="overview.html" class="btn btn-primary">Save profile</a>
+            <button type="button" class="btn btn-primary" onclick="saveUserProfile(event)">Save profile</button>
           </div>
         </div>
       </div>
@@ -216,6 +216,9 @@
     </main>
   </div>
 
+  <!-- Supabase Integration -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
