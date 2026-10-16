@@ -197,7 +197,8 @@ async function handleAuthSubmit(e) {
         }
       } else {
         setTimeout(() => {
-          window.location.href = currentSignInRole === 'vet' ? 'vet-overview.html' : 'overview.html';
+          // Pet owners go to set profile & pet details, veterinarians go to clinic setup
+          window.location.href = currentSignInRole === 'vet' ? 'vet-profile.html?setup=1' : 'my-profile.html?setup=1';
         }, 500);
       }
     } else {
@@ -245,23 +246,45 @@ function selectSlot(btn, slotTime) {
   if (summaryVal) summaryVal.textContent = 'Fri, 9 Oct 2026 · ' + slotTime;
 }
 
-async function acceptRequest(cardId) {
-  const actionsDiv = document.getElementById('request-actions');
+async function acceptRequest(cardId, apptId = 'a1111111-1111-1111-1111-111111111111') {
+  const card = document.getElementById(cardId) || document.getElementById('req-card-1');
   const countSpan = document.getElementById('pending-count');
-  if (actionsDiv) {
-    actionsDiv.innerHTML = '<span class="badge badge-verified">Accepted · Confirmed for Fri, 9 Oct · 10:30 am</span>';
-  }
-  if (countSpan) {
-    const text = countSpan.textContent.trim();
-    if (text.startsWith('2')) {
-      countSpan.textContent = '1 request';
-    } else {
-      countSpan.textContent = '0 requests';
+
+  if (card) {
+    const actions = card.querySelector('#request-actions') || card.querySelector('div:last-child');
+    if (actions) {
+      actions.innerHTML = '<span class="badge badge-verified">Accepted · Confirmed for Fri, 9 Oct · 10:30 am</span>';
+    }
+    const badge = card.querySelector('.badge-pending');
+    if (badge) {
+      badge.className = 'badge badge-verified';
+      badge.textContent = 'Confirmed';
     }
   }
 
+  if (countSpan) {
+    const text = countSpan.textContent.trim();
+    const countMatch = text.match(/\d+/);
+    const count = countMatch ? parseInt(countMatch[0], 10) : 1;
+    const newCount = Math.max(0, count - 1);
+    countSpan.textContent = `${newCount} request${newCount === 1 ? '' : 's'}`;
+  }
+
   if (window.PawCareSupabase) {
-    await window.PawCareSupabase.appointments.updateStatus('a1111111-1111-1111-1111-111111111111', 'confirmed');
+    await window.PawCareSupabase.appointments.updateStatus(apptId, 'confirmed');
+  }
+
+  // Real-time broadcast
+  if (window.PawCareRealtime) {
+    window.PawCareRealtime.notifyAppointmentAccepted({
+      id: apptId,
+      status: 'confirmed',
+      pet_name: 'Bruno',
+      owner_name: 'Rohan Patil',
+      date: 'Fri, 9 Oct 2026',
+      time: '10:30 am',
+      reason: 'Rabies booster'
+    });
   }
 }
 
@@ -285,7 +308,7 @@ function highlightPillarSlot(slotBtn, slotTime) {
   }
 }
 
-// Save Pet Profile to Supabase
+// Save Pet Profile for Current User
 async function savePetProfile(e) {
   if (e) e.preventDefault();
   const nameEl = document.getElementById('pet-name');
@@ -298,28 +321,31 @@ async function savePetProfile(e) {
   const allergiesEl = document.getElementById('pet-allergies');
   const illnessEl = document.getElementById('pet-past-illness');
 
+  const user = window.PawCareSupabase ? window.PawCareSupabase.auth.getCurrentUser() : null;
+  const ownerId = user?.id || '00000000-0000-0000-0000-000000000001';
+
   const updates = {
-    name: nameEl ? nameEl.value : 'Bruno',
+    name: nameEl && nameEl.value.trim() ? nameEl.value.trim() : 'My Pet',
     species: speciesEl ? speciesEl.value : 'Dog',
-    breed: breedEl ? breedEl.value : 'Labrador',
-    age: ageEl ? ageEl.value : '3 years',
-    weight: weightEl ? parseFloat(weightEl.value) || 28.4 : 28.4,
+    breed: breedEl && breedEl.value.trim() ? breedEl.value.trim() : 'Companion',
+    age: ageEl && ageEl.value.trim() ? ageEl.value.trim() : '1 year',
+    weight: weightEl && weightEl.value ? parseFloat(weightEl.value) || 10 : 10,
     sex: sexEl ? sexEl.value : 'Male · Neutered',
     microchip: microchipEl ? microchipEl.value : 'Not added',
-    allergies: allergiesEl ? allergiesEl.value : '',
-    past_illness: illnessEl ? illnessEl.value : ''
+    allergies: allergiesEl ? allergiesEl.value : 'None reported',
+    past_illness: illnessEl ? illnessEl.value : 'None'
   };
 
   if (window.PawCareSupabase) {
-    await window.PawCareSupabase.pets.update('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', updates);
+    await window.PawCareSupabase.pets.saveForOwner(ownerId, updates);
   }
 
   setTimeout(() => {
     window.location.href = 'overview.html';
-  }, 600);
+  }, 500);
 }
 
-// Save User Profile to Supabase
+// Save User Profile for Current User
 async function saveUserProfile(e) {
   if (e) e.preventDefault();
   const firstEl = document.getElementById('profile-first-name');
@@ -330,37 +356,91 @@ async function saveUserProfile(e) {
   const cityEl = document.getElementById('profile-city');
   const postalEl = document.getElementById('profile-postal');
 
+  const user = window.PawCareSupabase ? window.PawCareSupabase.auth.getCurrentUser() : null;
+  const targetId = user?.id || '00000000-0000-0000-0000-000000000001';
+
   const updates = {
-    first_name: firstEl ? firstEl.value : 'Rohan',
-    last_name: lastEl ? lastEl.value : 'Patil',
-    email: emailEl ? emailEl.value : 'rohan.patil@example.com',
-    phone: phoneEl ? phoneEl.value : '+91 98765 43210',
-    address: addressEl ? addressEl.value : '18 Prabhat Road, Deccan Gymkhana',
-    city: cityEl ? cityEl.value : 'Pune',
-    postal_code: postalEl ? postalEl.value : '411004'
+    first_name: firstEl && firstEl.value.trim() ? firstEl.value.trim() : (user?.first_name || 'Pet'),
+    last_name: lastEl && lastEl.value.trim() ? lastEl.value.trim() : (user?.last_name || 'Owner'),
+    email: emailEl && emailEl.value.trim() ? emailEl.value.trim() : (user?.email || ''),
+    phone: phoneEl ? phoneEl.value.trim() : '',
+    address: addressEl ? addressEl.value.trim() : '',
+    city: cityEl ? cityEl.value.trim() : '',
+    postal_code: postalEl ? postalEl.value.trim() : ''
   };
 
   if (window.PawCareSupabase) {
-    await window.PawCareSupabase.profiles.update('00000000-0000-0000-0000-000000000001', updates);
+    await window.PawCareSupabase.profiles.update(targetId, updates);
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const isSetup = params.get('setup') === '1';
+
+  setTimeout(() => {
+    // If in onboarding setup flow, proceed to step 2 (pet profile)
+    window.location.href = isSetup ? 'pet-profile.html?setup=1' : 'overview.html';
+  }, 500);
+}
+
+// Save Veterinarian Practice Profile
+async function saveVetProfile(e) {
+  if (e) e.preventDefault();
+  const nameEl = document.getElementById('vet-name-input');
+  const specialtyEl = document.getElementById('vet-specialty-input');
+  const clinicEl = document.getElementById('vet-clinic-input');
+  const locationEl = document.getElementById('vet-location-input');
+  const phoneEl = document.getElementById('vet-phone-input');
+  const hoursEl = document.getElementById('vet-hours-input');
+
+  const user = window.PawCareSupabase ? window.PawCareSupabase.auth.getCurrentUser() : null;
+  const targetId = user?.id || '00000000-0000-0000-0000-000000000002';
+
+  const vetUpdates = {
+    name: nameEl && nameEl.value.trim() ? nameEl.value.trim() : `Dr. ${user?.first_name || 'Anita'} ${user?.last_name || 'Rao'}`.trim(),
+    specialty: specialtyEl && specialtyEl.value.trim() ? specialtyEl.value.trim() : 'General physician, dogs & cats',
+    clinic_name: clinicEl && clinicEl.value.trim() ? clinicEl.value.trim() : 'Companion Animal Clinic',
+    clinic_location: locationEl && locationEl.value.trim() ? locationEl.value.trim() : 'Deccan, Pune',
+    phone: phoneEl && phoneEl.value.trim() ? phoneEl.value.trim() : '+91 98220 12345',
+    opening_hours: hoursEl && hoursEl.value.trim() ? hoursEl.value.trim() : 'Mon–Sat · 9:00 am–7:00 pm'
+  };
+
+  if (window.PawCareSupabase) {
+    await window.PawCareSupabase.vets.saveForVet(targetId, vetUpdates);
   }
 
   setTimeout(() => {
-    window.location.href = 'overview.html';
-  }, 600);
+    window.location.href = 'vet-overview.html';
+  }, 500);
 }
 
-// Submit Booking Request to Supabase
+// Submit Booking Request to Supabase & Real-Time Broadcast
 async function submitBookingRequest(e) {
   if (e) e.preventDefault();
   const dateEl = document.getElementById('booking-date-select');
   const timeEl = document.getElementById('booking-time-select');
   const reasonEl = document.getElementById('booking-reason-input');
 
+  const user = window.PawCareSupabase ? window.PawCareSupabase.auth.getCurrentUser() : null;
+  let pet = null;
+  if (window.PawCareSupabase) {
+    pet = await window.PawCareSupabase.pets.getForOwner(user?.id);
+  }
+
   const appointmentData = {
+    id: 'apt_' + Date.now(),
+    owner_id: user?.id || '00000000-0000-0000-0000-000000000001',
+    owner_name: user?.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : 'Rohan Patil',
+    pet_id: pet?.id || 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+    pet_name: pet?.name || 'Bruno',
+    pet_breed: pet?.breed || 'Labrador',
+    vet_id: '11111111-1111-1111-1111-111111111111',
+    vet_name: 'Dr. Anita Rao',
+    clinic_name: 'Companion Animal Clinic',
+    location: 'Deccan, Pune',
     date: dateEl ? dateEl.value : 'Fri, 9 Oct 2026',
     time: timeEl ? timeEl.value : '10:30 am',
     reason: reasonEl ? reasonEl.value : 'Rabies booster',
-    status: 'awaiting_acceptance'
+    status: 'pending'
   };
 
   if (window.PawCareSupabase) {
@@ -424,35 +504,113 @@ async function handlePreferenceToggle(prefKey, toggleEl) {
 async function hydrateWorkspaceData() {
   if (!window.PawCareSupabase) return;
 
+  const user = window.PawCareSupabase.auth.getCurrentUser();
+  const params = new URLSearchParams(window.location.search);
+  const isSetup = params.get('setup') === '1';
+
   try {
     // 1. Hydrate Pet Data (Overview, Health Records, Pet Profile)
-    const pet = await window.PawCareSupabase.pets.get('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb');
-    if (pet) {
-      // Pet Profile Form (pet-profile.html)
-      if (document.getElementById('pet-name')) document.getElementById('pet-name').value = pet.name || '';
-      if (document.getElementById('pet-breed')) document.getElementById('pet-breed').value = pet.breed || '';
-      if (document.getElementById('pet-age')) document.getElementById('pet-age').value = pet.age || '';
-      if (document.getElementById('pet-weight')) document.getElementById('pet-weight').value = pet.weight || '';
-      if (document.getElementById('pet-allergies')) document.getElementById('pet-allergies').value = pet.allergies || '';
-      if (document.getElementById('pet-past-illness')) document.getElementById('pet-past-illness').value = pet.past_illness || '';
+    const pet = await window.PawCareSupabase.pets.getForOwner(user?.id);
 
-      // Overview Pet Summary Card (overview.html)
-      const overviewName = document.querySelector('.pet-summary-name');
-      if (overviewName) overviewName.textContent = pet.name || 'Bruno';
-      const overviewMeta = document.querySelector('.pet-summary-meta');
-      if (overviewMeta) overviewMeta.textContent = `${pet.species || 'Dog'} · ${pet.breed || 'Labrador'} · ${pet.age || '3 years'}`;
-      const overviewWeight = document.querySelector('.pet-stats-row .stat-value');
-      if (overviewWeight) overviewWeight.textContent = `${pet.weight || '28.4'} kg`;
+    // Pet Profile Form (pet-profile.html)
+    if (document.getElementById('pet-name')) {
+      const nameEl = document.getElementById('pet-name');
+      const breedEl = document.getElementById('pet-breed');
+      const ageEl = document.getElementById('pet-age');
+      const weightEl = document.getElementById('pet-weight');
+      const allergiesEl = document.getElementById('pet-allergies');
+      const illnessEl = document.getElementById('pet-past-illness');
 
-      // Health Records Hero Card (health-records.html)
-      const recordName = document.querySelector('.pet-hero-name');
-      if (recordName) recordName.textContent = pet.name || 'Bruno';
+      if (pet) {
+        if (nameEl) nameEl.value = pet.name || '';
+        if (breedEl) breedEl.value = pet.breed || '';
+        if (ageEl) ageEl.value = pet.age || '';
+        if (weightEl) weightEl.value = pet.weight || '';
+        if (allergiesEl) allergiesEl.value = pet.allergies || '';
+        if (illnessEl) illnessEl.value = pet.past_illness || '';
+      } else {
+        // New user setting up their pet
+        if (nameEl) { nameEl.value = ''; nameEl.placeholder = 'e.g. Bruno, Max, Bella'; }
+        if (breedEl) { breedEl.value = ''; breedEl.placeholder = 'e.g. Labrador, Golden Retriever'; }
+        if (ageEl) { ageEl.value = ''; ageEl.placeholder = 'e.g. 2 years'; }
+        if (weightEl) { weightEl.value = ''; weightEl.placeholder = 'e.g. 28.4'; }
+        if (allergiesEl) { allergiesEl.value = ''; allergiesEl.placeholder = 'e.g. Chicken protein or None'; }
+        if (illnessEl) { illnessEl.value = ''; illnessEl.placeholder = 'e.g. Routine checkup'; }
+      }
+
+      // Left card photo details
+      const petCardName = document.querySelector('.grid-profile-layout .card h2');
+      const petCardBadge = document.querySelector('.grid-profile-layout .card .badge');
+      if (petCardName) petCardName.textContent = pet ? pet.name : 'Your companion';
+      if (petCardBadge) petCardBadge.textContent = pet ? `${pet.species || 'Dog'} · ${pet.breed || 'Companion'}` : 'New companion';
+
+      // Setup Step 2 Banner
+      if (isSetup) {
+        let setupBanner = document.getElementById('setup-step-banner');
+        if (!setupBanner) {
+          setupBanner = document.createElement('div');
+          setupBanner.id = 'setup-step-banner';
+          setupBanner.className = 'alert alert-success d-flex align-items-center justify-content-between p-3 mb-4 rounded-3 shadow-sm';
+          setupBanner.style.backgroundColor = '#FAF5EC';
+          setupBanner.style.border = '1px solid #D9C3AC';
+          setupBanner.style.color = '#482B19';
+          setupBanner.innerHTML = `
+            <div>
+              <strong style="font-size: 0.96rem;">🐾 Step 2 of 2: Set your pet's details</strong>
+              <div style="font-size: 0.8rem; margin-top: 2px;">Tell us about your companion so your veterinarian has full context for every visit.</div>
+            </div>
+            <span class="badge bg-dark text-white px-3 py-2" style="font-size: 0.76rem;">Step 2: Pet Details</span>
+          `;
+          const mainCol = document.querySelector('.app-main');
+          if (mainCol && mainCol.children.length > 1) {
+            mainCol.insertBefore(setupBanner, mainCol.children[2]);
+          }
+        }
+        const saveBtn = document.querySelector('button[onclick="savePetProfile(event)"]');
+        if (saveBtn) saveBtn.textContent = 'Save pet details & go to dashboard →';
+      }
+    }
+
+    // Overview Pet Summary Card (overview.html)
+    const overviewName = document.querySelector('.pet-summary-name');
+    const overviewMeta = document.querySelector('.pet-summary-meta');
+    const overviewWeight = document.querySelector('.pet-stats-row .stat-value');
+    if (overviewName) {
+      if (pet) {
+        overviewName.textContent = pet.name;
+        if (overviewMeta) overviewMeta.textContent = `${pet.species || 'Dog'} · ${pet.breed || 'Companion'} · ${pet.age || ''}`;
+        if (overviewWeight) overviewWeight.textContent = `${pet.weight || '28.4'} kg`;
+      } else {
+        overviewName.textContent = 'Add your companion pet';
+        if (overviewMeta) overviewMeta.textContent = 'Set up your pet’s profile to track visits, vaccinations & health records.';
+        if (overviewWeight) overviewWeight.textContent = '-- kg';
+        const petBtns = document.querySelector('.pet-action-btns');
+        if (petBtns) {
+          petBtns.innerHTML = '<a href="pet-profile.html?setup=1" class="btn btn-primary btn-sm">+ Add pet profile</a>';
+        }
+      }
+    }
+
+    // Overview Greeting
+    const greetingEl = document.querySelector('.page-header-row .page-title');
+    if (greetingEl && user && user.first_name) {
+      if (user.role === 'vet') {
+        greetingEl.textContent = `Hello, Dr. ${user.first_name} ${user.last_name || ''}.`.trim();
+      } else {
+        greetingEl.textContent = `Hello, ${user.first_name}.`;
+      }
+    }
+
+    // Health Records Hero Card (health-records.html)
+    const recordName = document.querySelector('.pet-hero-name');
+    if (recordName) {
+      recordName.textContent = pet ? pet.name : 'Your Pet';
       const recordBadge = document.querySelector('.pet-hero-name-row .badge');
-      if (recordBadge) recordBadge.textContent = `${pet.species || 'Dog'} · ${pet.breed || 'Labrador'}`;
+      if (recordBadge) recordBadge.textContent = pet ? `${pet.species || 'Dog'} · ${pet.breed || 'Companion'}` : 'Companion';
       const recordMeta = document.querySelector('.pet-hero-meta');
-      if (recordMeta) recordMeta.textContent = `${pet.age || '3 years'} · ${pet.weight || '28.4'} kg`;
+      if (recordMeta) recordMeta.textContent = pet ? `${pet.age || ''} · ${pet.weight || ''} kg` : '-- kg';
       const recordAllergy = document.querySelector('.pet-hero-allergy span');
-      if (recordAllergy && pet.allergies) {
+      if (recordAllergy && pet?.allergies) {
         recordAllergy.textContent = pet.allergies;
       }
     }
@@ -463,38 +621,225 @@ async function hydrateWorkspaceData() {
   try {
     // 2. Hydrate User Profile Form (my-profile.html)
     if (document.getElementById('profile-first-name')) {
-      const user = window.PawCareSupabase.auth.getCurrentUser();
-      const profile = await window.PawCareSupabase.profiles.get(user?.id || '00000000-0000-0000-0000-000000000001');
-      if (profile) {
-        if (document.getElementById('profile-first-name')) document.getElementById('profile-first-name').value = profile.first_name || '';
-        if (document.getElementById('profile-last-name')) document.getElementById('profile-last-name').value = profile.last_name || '';
-        if (document.getElementById('profile-email')) document.getElementById('profile-email').value = profile.email || '';
-        if (document.getElementById('profile-phone')) document.getElementById('profile-phone').value = profile.phone || '';
-        if (document.getElementById('profile-address')) document.getElementById('profile-address').value = profile.address || '';
-        if (document.getElementById('profile-city')) document.getElementById('profile-city').value = profile.city || '';
-        if (document.getElementById('profile-postal')) document.getElementById('profile-postal').value = profile.postal_code || '';
+      const profile = await window.PawCareSupabase.profiles.get(user?.id);
+      if (profile || user) {
+        const pFirst = profile?.first_name || user?.first_name || '';
+        const pLast = profile?.last_name || user?.last_name || '';
+        const pEmail = profile?.email || user?.email || '';
+
+        if (document.getElementById('profile-first-name')) document.getElementById('profile-first-name').value = pFirst;
+        if (document.getElementById('profile-last-name')) document.getElementById('profile-last-name').value = pLast;
+        if (document.getElementById('profile-email')) document.getElementById('profile-email').value = pEmail;
+        if (document.getElementById('profile-phone')) document.getElementById('profile-phone').value = profile?.phone || '';
+        if (document.getElementById('profile-address')) document.getElementById('profile-address').value = profile?.address || '';
+        if (document.getElementById('profile-city')) document.getElementById('profile-city').value = profile?.city || '';
+        if (document.getElementById('profile-postal')) document.getElementById('profile-postal').value = profile?.postal_code || '';
+
+        // Left Owner Card
+        const cardInitial = document.querySelector('.grid-profile-layout .card > div:first-child');
+        const cardName = document.querySelector('.grid-profile-layout .card h2');
+        const cardMember = document.querySelector('.grid-profile-layout .card .stat-value');
+        if (cardInitial) {
+          const init1 = pFirst ? pFirst[0].toUpperCase() : 'P';
+          const init2 = pLast ? pLast[0].toUpperCase() : 'O';
+          cardInitial.textContent = `${init1}${init2}`;
+        }
+        if (cardName) {
+          cardName.textContent = `${pFirst} ${pLast}`.trim();
+        }
+        if (cardMember) {
+          cardMember.textContent = profile?.member_since || 'October 2026';
+        }
+
+        // Setup Step 1 Banner
+        if (isSetup) {
+          let setupBanner = document.getElementById('setup-step-banner');
+          if (!setupBanner) {
+            setupBanner = document.createElement('div');
+            setupBanner.id = 'setup-step-banner';
+            setupBanner.className = 'alert alert-success d-flex align-items-center justify-content-between p-3 mb-4 rounded-3 shadow-sm';
+            setupBanner.style.backgroundColor = '#FAF5EC';
+            setupBanner.style.border = '1px solid #D9C3AC';
+            setupBanner.style.color = '#482B19';
+            setupBanner.innerHTML = `
+              <div>
+                <strong style="font-size: 0.96rem;">🎉 Welcome to Paw Care, ${pFirst}! (Step 1 of 2)</strong>
+                <div style="font-size: 0.8rem; margin-top: 2px;">Please confirm your profile details below, then continue to add your pet's details.</div>
+              </div>
+              <span class="badge bg-dark text-white px-3 py-2" style="font-size: 0.76rem;">Step 1: Your Profile</span>
+            `;
+            const mainCol = document.querySelector('.app-main');
+            if (mainCol && mainCol.children.length > 1) {
+              mainCol.insertBefore(setupBanner, mainCol.children[2]);
+            }
+          }
+          const saveBtn = document.querySelector('button[onclick="saveUserProfile(event)"]');
+          if (saveBtn) saveBtn.textContent = 'Save profile & set pet details →';
+        }
       }
     }
   } catch (e) {
     console.warn('Could not hydrate user profile', e);
   }
 
-  // 3. Topbar User Name across all workspace pages
+  // 3. Hydrate Veterinarian Practice Profile (vet-profile.html)
   try {
-    const user = window.PawCareSupabase.auth.getCurrentUser();
+    if (window.location.pathname.includes('vet-profile.html') || document.getElementById('vet-name-input')) {
+      const vet = await window.PawCareSupabase.vets.getForUser(user?.id);
+      if (vet || user) {
+        const docName = vet?.name || (user?.first_name ? `Dr. ${user.first_name} ${user.last_name || ''}`.trim() : 'Dr. Anita Rao');
+        const docNameEl = document.querySelector('.grid-booking-layout .card h2');
+        if (docNameEl) docNameEl.textContent = docName;
+
+        const clinicNameEl = document.querySelector('#clinic h3');
+        if (clinicNameEl && vet?.clinic_name) clinicNameEl.textContent = vet.clinic_name;
+
+        // Populate practice configuration inputs
+        const nameInput = document.getElementById('vet-name-input');
+        const specialtyInput = document.getElementById('vet-specialty-input');
+        const clinicInput = document.getElementById('vet-clinic-input');
+        const locInput = document.getElementById('vet-location-input');
+        const phoneInput = document.getElementById('vet-phone-input');
+        const hoursInput = document.getElementById('vet-hours-input');
+
+        if (nameInput) nameInput.value = docName;
+        if (specialtyInput) specialtyInput.value = vet?.specialty || 'General physician, dogs & cats';
+        if (clinicInput) clinicInput.value = vet?.clinic_name || 'Companion Animal Clinic';
+        if (locInput) locInput.value = vet?.clinic_location || 'Deccan, Pune';
+        if (phoneInput) phoneInput.value = vet?.phone || '+91 98220 12345';
+        if (hoursInput) hoursInput.value = vet?.opening_hours || 'Mon–Sat · 9:00 am–7:00 pm';
+
+        // If logged-in user is a veterinarian, switch the sidebar navigation to Veterinarian links
+        if (user?.role === 'vet') {
+          const sidebarRole = document.querySelector('.sidebar-role-label');
+          if (sidebarRole) sidebarRole.textContent = 'VETERINARIAN';
+          const sidebarNav = document.querySelector('.sidebar-nav');
+          if (sidebarNav) {
+            sidebarNav.innerHTML = `
+              <a href="vet-overview.html" class="sidebar-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                <span>Overview</span>
+              </a>
+              <a href="vet-week-schedule.html" class="sidebar-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                <span>Week schedule</span>
+              </a>
+              <a href="vet-requests-availability.html" class="sidebar-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                <span>Request &amp; availability</span>
+              </a>
+              <a href="vet-consultation.html" class="sidebar-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                <span>Records</span>
+              </a>
+              <a href="vet-profile.html" class="sidebar-link active">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <span>My profile</span>
+              </a>
+            `;
+          }
+        }
+
+        if (isSetup) {
+          let setupBanner = document.getElementById('vet-setup-banner');
+          if (!setupBanner) {
+            setupBanner = document.createElement('div');
+            setupBanner.id = 'vet-setup-banner';
+            setupBanner.className = 'alert alert-success d-flex align-items-center justify-content-between p-3 mb-4 rounded-3 shadow-sm';
+            setupBanner.style.backgroundColor = '#FAF5EC';
+            setupBanner.style.border = '1px solid #D9C3AC';
+            setupBanner.style.color = '#482B19';
+            setupBanner.innerHTML = `
+              <div>
+                <strong style="font-size: 0.96rem;">🩺 Welcome to Paw Care Practice!</strong>
+                <div style="font-size: 0.8rem; margin-top: 2px;">Please review and configure your clinic information, specialties, and consultation availability.</div>
+              </div>
+              <span class="badge bg-dark text-white px-3 py-2" style="font-size: 0.76rem;">Practice Setup</span>
+            `;
+            const mainCol = document.querySelector('.app-main');
+            if (mainCol && mainCol.children.length > 1) {
+              mainCol.insertBefore(setupBanner, mainCol.children[2]);
+            }
+          }
+          const saveBtn = document.getElementById('vet-save-btn');
+          if (saveBtn) saveBtn.textContent = 'Save practice details & go to dashboard →';
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('Could not hydrate vet profile', e);
+  }
+
+  // 4. Topbar User Name across all workspace pages
+  try {
     if (user && user.first_name) {
       const userSpan = document.querySelector('.topbar-user span:not(.user-avatar-sm)');
       const avatarSpan = document.querySelector('.topbar-user .user-avatar-sm');
-      if (userSpan) userSpan.textContent = `${user.first_name} ${user.last_name || ''}`;
+      if (userSpan) userSpan.textContent = user.role === 'vet' ? `Dr. ${user.first_name} ${user.last_name || ''}`.trim() : `${user.first_name} ${user.last_name || ''}`.trim();
       if (avatarSpan) {
-        avatarSpan.textContent = `${user.first_name[0] || 'R'}${user.last_name ? user.last_name[0] : 'P'}`;
+        avatarSpan.textContent = `${user.first_name[0] || 'U'}${user.last_name ? user.last_name[0] : ''}`;
       }
     }
   } catch (e) {
     console.warn('Could not update topbar user name', e);
   }
 
-  // 4. Wire Notification Preferences toggles if on reminders page
+  // 5. Real-Time Appointment Synchronization via Socket.io
+  if (window.PawCareRealtime) {
+    // Pet owner dashboard: listen for doctor appointment acceptance
+    window.PawCareRealtime.onAppointmentAccepted((data) => {
+      // 1. Table rows in overview.html and reminders.html
+      const pendingBadges = document.querySelectorAll('.data-table .badge-pending, .appt-status-cell .badge-pending');
+      pendingBadges.forEach(b => {
+        b.className = 'badge badge-verified';
+        b.textContent = 'Confirmed';
+        const tr = b.closest('tr');
+        if (tr) {
+          tr.style.transition = 'background-color 0.4s';
+          tr.style.backgroundColor = '#EBF5EB';
+          setTimeout(() => tr.style.backgroundColor = '', 3000);
+        }
+      });
+
+      // 2. Overview pending alert card
+      const dueText = document.getElementById('overview-pending-text') || document.querySelector('.card-sand p');
+      if (dueText && (dueText.textContent.includes('awaiting') || dueText.textContent.includes('Dr. Anita Rao'))) {
+        dueText.innerHTML = `Confirmed with Dr. Anita Rao. Your visit is scheduled for <strong>${data.date || 'Fri, 9 Oct'}</strong> at <strong>${data.time || '10:30 am'}</strong>.`;
+        const dueBadge = document.getElementById('overview-pending-badge') || document.querySelector('.card-sand .badge-pending');
+        if (dueBadge) {
+          dueBadge.className = 'badge badge-verified';
+          dueBadge.textContent = 'Confirmed';
+        }
+      }
+
+      // 3. Booking-sent page: update if open
+      const bookingSentBadge = document.querySelector('.grid-profile-layout .card .badge-pending');
+      if (bookingSentBadge) {
+        bookingSentBadge.className = 'badge badge-verified';
+        bookingSentBadge.textContent = 'Confirmed';
+        const title = document.querySelector('.grid-profile-layout .card h2.card-title');
+        if (title) title.textContent = 'Appointment Confirmed!';
+        const desc = document.querySelector('.grid-profile-layout .card p');
+        if (desc) desc.textContent = `Dr. Anita Rao has accepted your booking request for ${data.date || 'Fri, 9 Oct'} at ${data.time || '10:30 am'}.`;
+      }
+
+      if (window.PawCareSupabase && typeof window.PawCareSupabase.showToast === 'function') {
+        window.PawCareSupabase.showToast(`🎉 Appointment confirmed! Dr. Anita Rao accepted your booking request for ${data.date || 'Fri, 9 Oct'}.`, 'success');
+      }
+    });
+
+    // Veterinarian dashboard: listen for incoming booking requests
+    window.PawCareRealtime.onAppointmentCreated((appt) => {
+      if (typeof addPendingRequestCard === 'function') {
+        addPendingRequestCard(appt);
+      }
+      if (window.PawCareSupabase && typeof window.PawCareSupabase.showToast === 'function') {
+        window.PawCareSupabase.showToast(`🔔 New booking request from ${appt.owner_name} for ${appt.pet_name} (${appt.reason})!`, 'info');
+      }
+    });
+  }
+
+  // 6. Wire Notification Preferences toggles if on reminders page
   const prefToggles = document.querySelectorAll('.pref-row .toggle-switch');
   if (prefToggles && prefToggles.length >= 4) {
     const prefKeys = ['email_reminders', 'sms_reminders', 'push_notifications', 'weekly_digest'];
@@ -504,7 +849,7 @@ async function hydrateWorkspaceData() {
     });
   }
 
-  // 5. Wire Health records filter tabs
+  // 7. Wire Health records filter tabs
   const filterTabs = document.querySelectorAll('.role-tabs a.role-tab');
   filterTabs.forEach(tab => {
     tab.onclick = function (ev) {

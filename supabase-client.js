@@ -558,7 +558,7 @@
     // --- 6. PETS SERVICE ---
     pets: {
       async get(id) {
-        if (PawCareSupabase.isConfigured()) {
+        if (PawCareSupabase.isConfigured() && id) {
           try {
             const { data, error } = await PawCareSupabase.client.from('pets').select('*').eq('id', id).single();
             if (!error && data) return data;
@@ -568,6 +568,88 @@
         }
         const store = getLocalStore();
         return store.pets.find(p => p.id === id) || store.pets[0];
+      },
+
+      async getForOwner(ownerId) {
+        const currentUser = PawCareSupabase.auth.getCurrentUser();
+        const targetOwnerId = ownerId || currentUser?.id || '00000000-0000-0000-0000-000000000001';
+
+        if (PawCareSupabase.isConfigured()) {
+          try {
+            const { data, error } = await PawCareSupabase.client
+              .from('pets')
+              .select('*')
+              .eq('owner_id', targetOwnerId)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            if (!error && data) return data;
+          } catch (e) {
+            console.warn('Error fetching owner pet from Supabase', e);
+          }
+        }
+
+        const store = getLocalStore();
+        const found = store.pets.find(p => p.owner_id === targetOwnerId);
+        if (found) return found;
+
+        // If default demo user, return Bruno
+        if (targetOwnerId === '00000000-0000-0000-0000-000000000001') {
+          return store.pets[0];
+        }
+
+        // Newly registered user with no pet added yet
+        return null;
+      },
+
+      async saveForOwner(ownerId, petData) {
+        const currentUser = PawCareSupabase.auth.getCurrentUser();
+        const targetOwnerId = ownerId || currentUser?.id || '00000000-0000-0000-0000-000000000001';
+
+        const store = getLocalStore();
+        let existingIndex = store.pets.findIndex(p => p.owner_id === targetOwnerId);
+        let petId = existingIndex >= 0 ? store.pets[existingIndex].id : 'pet_' + Date.now();
+
+        const fullPetRecord = {
+          id: petId,
+          owner_id: targetOwnerId,
+          name: petData.name || 'My Pet',
+          species: petData.species || 'Dog',
+          breed: petData.breed || 'Companion',
+          age: petData.age || '1 year',
+          weight: petData.weight ? parseFloat(petData.weight) || 10 : 10,
+          sex: petData.sex || 'Male',
+          microchip: petData.microchip || 'Not added',
+          allergies: petData.allergies || 'None reported',
+          past_illness: petData.past_illness || 'None'
+        };
+
+        if (PawCareSupabase.isConfigured()) {
+          try {
+            const { data, error } = await PawCareSupabase.client
+              .from('pets')
+              .upsert(fullPetRecord)
+              .select();
+            if (!error && data) {
+              PawCareSupabase.showToast('Pet profile synced to Supabase!', 'success');
+            }
+          } catch (e) {
+            console.warn('Supabase pet save failed, stored locally', e);
+          }
+        }
+
+        if (existingIndex >= 0) {
+          store.pets[existingIndex] = { ...store.pets[existingIndex], ...fullPetRecord };
+        } else {
+          store.pets.unshift(fullPetRecord);
+        }
+        setLocalStore(store);
+
+        PawCareSupabase.showToast('Pet profile saved successfully!', 'success');
+        if (window.PawCareRealtime) {
+          window.PawCareRealtime.notifyProfileUpdated({ type: 'pet', owner_id: targetOwnerId, pet: fullPetRecord });
+        }
+        return fullPetRecord;
       },
 
       async list(ownerId) {
@@ -617,44 +699,84 @@
     // --- 7. PROFILES SERVICE ---
     profiles: {
       async get(id) {
-        if (PawCareSupabase.isConfigured() && id) {
+        const currentUser = PawCareSupabase.auth.getCurrentUser();
+        const targetId = id || currentUser?.id;
+
+        if (PawCareSupabase.isConfigured() && targetId) {
           try {
-            const { data, error } = await PawCareSupabase.client.from('profiles').select('*').eq('id', id).single();
+            const { data, error } = await PawCareSupabase.client.from('profiles').select('*').eq('id', targetId).single();
             if (!error && data) return data;
           } catch (e) {
             console.warn('Error fetching profile from Supabase', e);
           }
         }
         const store = getLocalStore();
-        return store.profiles.find(p => p.id === id) || store.profiles[0];
+        const found = store.profiles.find(p => p.id === targetId || (currentUser && p.email?.toLowerCase() === currentUser.email?.toLowerCase()));
+        if (found) return found;
+
+        // If this is an authenticated user but not yet in local profiles list, generate their profile record
+        if (currentUser && (!targetId || targetId === currentUser.id)) {
+          const newProfile = {
+            id: currentUser.id,
+            role: currentUser.role || 'owner',
+            first_name: currentUser.first_name || 'Pet',
+            last_name: currentUser.last_name || 'Owner',
+            full_name: `${currentUser.first_name || 'Pet'} ${currentUser.last_name || 'Owner'}`.trim(),
+            email: currentUser.email || '',
+            phone: '',
+            address: '',
+            city: '',
+            postal_code: '',
+            member_since: 'October 2026'
+          };
+          store.profiles.push(newProfile);
+          setLocalStore(store);
+          return newProfile;
+        }
+
+        return store.profiles[0];
       },
 
       async update(id, updates) {
-        if (PawCareSupabase.isConfigured() && id) {
+        const currentUser = PawCareSupabase.auth.getCurrentUser();
+        const targetId = id || currentUser?.id || '00000000-0000-0000-0000-000000000001';
+
+        if (PawCareSupabase.isConfigured() && targetId) {
           try {
             const { data, error } = await PawCareSupabase.client
               .from('profiles')
-              .update(updates)
-              .eq('id', id)
+              .upsert({ id: targetId, ...updates })
               .select();
             if (!error) {
               PawCareSupabase.showToast('Profile updated in Supabase!', 'success');
-              return data;
             }
           } catch (e) {
             console.warn('Supabase profile update failed, saving locally', e);
           }
         }
+
         const store = getLocalStore();
-        const index = store.profiles.findIndex(p => p.id === id);
+        const index = store.profiles.findIndex(p => p.id === targetId);
         if (index >= 0) {
           store.profiles[index] = { ...store.profiles[index], ...updates };
         } else {
-          store.profiles[0] = { ...store.profiles[0], ...updates };
+          store.profiles.push({ id: targetId, ...updates });
         }
         setLocalStore(store);
+
+        // Update active session user if names changed
+        const session = PawCareSupabase.auth.getSession();
+        if (session && session.user && session.user.id === targetId) {
+          if (updates.first_name) session.user.first_name = updates.first_name;
+          if (updates.last_name) session.user.last_name = updates.last_name;
+          localStorage.setItem('paw_care_session', JSON.stringify(session));
+        }
+
         PawCareSupabase.showToast('Profile saved successfully!', 'success');
-        return store.profiles[0];
+        if (window.PawCareRealtime) {
+          window.PawCareRealtime.notifyProfileUpdated({ type: 'profile', id: targetId, updates });
+        }
+        return updates;
       }
     },
 
@@ -684,6 +806,80 @@
         }
         const store = getLocalStore();
         return store.vets.find(v => v.id === id) || store.vets[0];
+      },
+
+      async getForUser(userId) {
+        const currentUser = PawCareSupabase.auth.getCurrentUser();
+        const targetId = userId || currentUser?.id;
+
+        if (PawCareSupabase.isConfigured() && targetId) {
+          try {
+            const { data, error } = await PawCareSupabase.client
+              .from('vets')
+              .select('*')
+              .eq('profile_id', targetId)
+              .maybeSingle();
+            if (!error && data) return data;
+          } catch (e) {}
+        }
+
+        const store = getLocalStore();
+        const found = store.vets.find(v => v.profile_id === targetId || v.id === targetId);
+        if (found) return found;
+
+        if (currentUser && currentUser.role === 'vet') {
+          return {
+            id: 'vet_' + currentUser.id,
+            profile_id: currentUser.id,
+            name: `Dr. ${currentUser.first_name || 'Anita'} ${currentUser.last_name || 'Rao'}`.trim(),
+            specialty: 'General physician, dogs & cats',
+            clinic_name: 'Companion Animal Clinic',
+            clinic_location: 'Deccan, Pune',
+            distance: '2.4 km',
+            verified: true,
+            verification_status: 'Verified veterinarian',
+            next_available: 'Fri, 9 Oct · 10:30 am',
+            opening_hours: 'Mon–Sat · 9:00 am–7:00 pm',
+            facilities: 'Consultation room, vaccination area, pharmacy support',
+            image_url: 'assets/pdf_img_5.jpeg'
+          };
+        }
+
+        return store.vets[0];
+      },
+
+      async saveForVet(userId, vetData) {
+        const currentUser = PawCareSupabase.auth.getCurrentUser();
+        const targetId = userId || currentUser?.id;
+
+        const store = getLocalStore();
+        let existingIndex = store.vets.findIndex(v => v.profile_id === targetId || v.id === targetId);
+        const vetRecord = {
+          id: existingIndex >= 0 ? store.vets[existingIndex].id : 'vet_' + Date.now(),
+          profile_id: targetId,
+          ...vetData
+        };
+
+        if (PawCareSupabase.isConfigured()) {
+          try {
+            await PawCareSupabase.client.from('vets').upsert(vetRecord);
+          } catch (e) {
+            console.warn('Supabase vet save failed', e);
+          }
+        }
+
+        if (existingIndex >= 0) {
+          store.vets[existingIndex] = { ...store.vets[existingIndex], ...vetRecord };
+        } else {
+          store.vets.unshift(vetRecord);
+        }
+        setLocalStore(store);
+
+        PawCareSupabase.showToast('Clinic profile saved!', 'success');
+        if (window.PawCareRealtime) {
+          window.PawCareRealtime.notifyProfileUpdated({ type: 'vet', userId: targetId, vet: vetRecord });
+        }
+        return vetRecord;
       }
     },
 
@@ -692,10 +888,10 @@
       async list(filters = {}) {
         if (PawCareSupabase.isConfigured()) {
           try {
-            let query = PawCareSupabase.client.from('appointments').select('*');
+            let query = PawCareSupabase.client.from('appointments').select('*').order('created_at', { ascending: false });
             if (filters.status) query = query.eq('status', filters.status);
             const { data, error } = await query;
-            if (!error && data) return data;
+            if (!error && data && data.length > 0) return data;
           } catch (e) {
             console.warn('Error fetching appointments from Supabase', e);
           }
@@ -705,16 +901,24 @@
       },
 
       async create(appointmentData) {
+        const currentUser = PawCareSupabase.auth.getCurrentUser();
         const newAppt = {
           id: appointmentData.id || 'a_' + Date.now(),
+          owner_id: appointmentData.owner_id || currentUser?.id || '00000000-0000-0000-0000-000000000001',
+          owner_name: appointmentData.owner_name || (currentUser ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim() : 'Rohan Patil'),
           pet_id: appointmentData.pet_id || 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+          pet_name: appointmentData.pet_name || 'Bruno',
+          pet_breed: appointmentData.pet_breed || 'Labrador',
+          pet_age: appointmentData.pet_age || '3 years',
           vet_id: appointmentData.vet_id || '11111111-1111-1111-1111-111111111111',
+          vet_name: appointmentData.vet_name || 'Dr. Anita Rao',
+          clinic_name: appointmentData.clinic_name || 'Companion Animal Clinic',
+          location: appointmentData.location || 'Deccan, Pune',
           date: appointmentData.date || 'Fri, 9 Oct 2026',
           time: appointmentData.time || '10:30 am',
           reason: appointmentData.reason || 'Check-up',
-          status: appointmentData.status || 'awaiting_acceptance',
-          clinic_name: appointmentData.clinic_name || 'Companion Animal Clinic',
-          location: appointmentData.location || 'Deccan, Pune'
+          status: appointmentData.status || 'pending',
+          created_at: new Date().toISOString()
         };
 
         if (PawCareSupabase.isConfigured()) {
@@ -723,9 +927,8 @@
               .from('appointments')
               .insert([newAppt])
               .select();
-            if (!error) {
-              PawCareSupabase.showToast('Booking request saved to Supabase!', 'success');
-              return data[0];
+            if (!error && data) {
+              PawCareSupabase.showToast('Booking request sent in real-time!', 'success');
             }
           } catch (e) {
             console.warn('Supabase appointment insert failed, saving locally', e);
@@ -735,7 +938,13 @@
         const store = getLocalStore();
         store.appointments.unshift(newAppt);
         setLocalStore(store);
-        PawCareSupabase.showToast('Booking request sent successfully!', 'success');
+
+        // Broadcast appointment creation via Socket.io / BroadcastChannel
+        if (window.PawCareRealtime) {
+          window.PawCareRealtime.notifyAppointmentCreated(newAppt);
+        }
+
+        PawCareSupabase.showToast('Booking request sent to clinic in real-time!', 'success');
         return newAppt;
       },
 
@@ -748,8 +957,7 @@
               .eq('id', id)
               .select();
             if (!error) {
-              PawCareSupabase.showToast(`Appointment status updated to ${status} in Supabase!`, 'success');
-              return data;
+              PawCareSupabase.showToast(`Appointment status updated to ${status}!`, 'success');
             }
           } catch (e) {
             console.warn('Supabase appointment status update failed', e);
@@ -762,7 +970,21 @@
           appt.status = status;
           setLocalStore(store);
         }
-        PawCareSupabase.showToast(`Request accepted! Confirmed for Fri, 9 Oct.`, 'success');
+
+        // Broadcast appointment status update via Socket.io / BroadcastChannel
+        if (window.PawCareRealtime) {
+          window.PawCareRealtime.notifyAppointmentAccepted({
+            id: id,
+            status: status,
+            pet_name: appt?.pet_name || 'Bruno',
+            owner_name: appt?.owner_name || 'Rohan Patil',
+            date: appt?.date || 'Fri, 9 Oct 2026',
+            time: appt?.time || '10:30 am',
+            reason: appt?.reason || 'Consultation'
+          });
+        }
+
+        PawCareSupabase.showToast(`Appointment confirmed in real-time!`, 'success');
         return appt;
       }
     },
