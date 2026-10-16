@@ -80,6 +80,14 @@
             </svg>
             <span>For their little moments. And their big milestones.</span>
           </div>
+
+          <!-- ===== SCROLL DOWN HINT ===== -->
+          <div class="scroll-hint" id="scrollHint" aria-label="Scroll down to explore">
+            <span class="scroll-hint-label">Scroll to explore</span>
+            <div class="scroll-hint-mouse">
+              <div class="scroll-hint-wheel"></div>
+            </div>
+          </div>
         </div>
 
         <div class="hero-image-column">
@@ -512,6 +520,19 @@
     </div>
   </footer>
 
+  <!-- ===== SCROLL PROGRESS BAR ===== -->
+  <div id="scrollProgressBar" aria-hidden="true"></div>
+
+  <!-- ===== SECTION DOT NAVIGATOR ===== -->
+  <nav class="section-dot-nav" id="sectionDotNav" aria-label="Page sections">
+    <a href="#" class="dot-nav-item active" data-section="0" data-label="Home" title="Home"></a>
+    <a href="#vets" class="dot-nav-item" data-section="1" data-label="Our Vets" title="Our veterinarians"></a>
+    <a href="#faqs" class="dot-nav-item" data-section="2" data-label="FAQs" title="FAQs"></a>
+    <a href="#care" class="dot-nav-item" data-section="3" data-label="Care &amp; Visits" title="Care &amp; Visits"></a>
+    <a href="#records" class="dot-nav-item" data-section="4" data-label="Health Records" title="Health Records"></a>
+    <a href="#reminders" class="dot-nav-item" data-section="5" data-label="Reminders" title="Reminders"></a>
+  </nav>
+
   <!-- Bootstrap 5 JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <!-- Socket.io & Real-Time Sync -->
@@ -521,5 +542,65 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
   <script src="script.js"></script>
+
+  <script>
+  /* ===== Scroll Enhancements ===== */
+  (function() {
+    const progressBar = document.getElementById('scrollProgressBar');
+    const scrollHint  = document.getElementById('scrollHint');
+    const dotNav      = document.getElementById('sectionDotNav');
+    const dots        = dotNav ? dotNav.querySelectorAll('.dot-nav-item') : [];
+
+    // Sections in order (using the snap sections)
+    const sectionIds = ['', 'vets', 'faqs', 'care', 'records', 'reminders'];
+
+    /* -- Progress bar -- */
+    function updateProgress() {
+      const scrollTop    = document.documentElement.scrollTop || document.body.scrollTop;
+      const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const pct          = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+      if (progressBar) progressBar.style.width = pct + '%';
+    }
+
+    /* -- Scroll hint fade-out after first scroll -- */
+    let hintHidden = false;
+    function hideHint() {
+      if (!hintHidden && scrollHint) {
+        const scrolled = document.documentElement.scrollTop || document.body.scrollTop;
+        if (scrolled > 40) {
+          scrollHint.classList.add('hidden');
+          hintHidden = true;
+        }
+      }
+    }
+
+    /* -- Active dot nav -- */
+    function updateActiveDot() {
+      let activeIdx = 0;
+      const mid = window.innerHeight / 2;
+      sectionIds.forEach(function(id, i) {
+        if (!id) return;
+        const el = document.getElementById(id);
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        if (rect.top <= mid) activeIdx = i;
+      });
+      dots.forEach(function(d, i) {
+        d.classList.toggle('active', i === activeIdx);
+      });
+    }
+
+    /* -- Combine handlers -- */
+    function onScroll() {
+      updateProgress();
+      hideHint();
+      updateActiveDot();
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    updateProgress();
+    updateActiveDot();
+  })();
+  </script>
 </body>
 </html>

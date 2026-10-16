@@ -92,12 +92,12 @@
 
           <div class="form-group">
             <label class="form-label" for="signin-email">Email or mobile number</label>
-            <input type="email" id="signin-email" class="form-control" placeholder="e.g. rohan.patil@example.com" required autocomplete="email" />
+            <input type="text" id="signin-email" class="form-control" placeholder="e.g. you@example.com" autocomplete="username" required />
           </div>
 
           <div class="form-group">
             <label class="form-label" for="signin-password">Password</label>
-            <input type="password" id="signin-password" class="form-control" placeholder="Enter password" required autocomplete="current-password" />
+            <input type="password" id="signin-password" class="form-control" placeholder="Enter your password" autocomplete="current-password" required />
           </div>
 
           <div class="signin-options-row" id="signin-options">
@@ -142,5 +142,52 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
   <script src="script.js"></script>
+
+  <script>
+  /* ── Store typed credentials in localStorage so dashboards can personalise ── */
+  (function () {
+    var currentRole = 'owner';
+
+    /* Update email placeholder based on role */
+    window.switchRole = (function(_orig) {
+      return function(role) {
+        currentRole = role;
+        var emailInput = document.getElementById('signin-email');
+        if (emailInput) {
+          emailInput.placeholder = role === 'vet'
+            ? 'e.g. dr.name@yourclinic.com'
+            : 'e.g. you@example.com';
+        }
+        if (_orig) _orig(role);
+      };
+    })(window.switchRole);
+
+    /* On form submit, stash name field (for sign-up) or derive display name from email */
+    var form = document.getElementById('signin-form');
+    if (form) {
+      form.addEventListener('submit', function () {
+        var nameInput  = document.getElementById('signin-name');
+        var emailInput = document.getElementById('signin-email');
+        var name = '';
+
+        if (nameInput && nameInput.value.trim()) {
+          name = nameInput.value.trim();
+        } else if (emailInput && emailInput.value.trim()) {
+          /* Derive a friendly name from the email local-part */
+          var local = emailInput.value.trim().split('@')[0];
+          name = local
+            .replace(/[._\-]/g, ' ')
+            .replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+        }
+
+        if (name) localStorage.setItem('pawcare_display_name', name);
+        if (emailInput && emailInput.value.trim()) {
+          localStorage.setItem('pawcare_email', emailInput.value.trim());
+        }
+        localStorage.setItem('pawcare_role', currentRole);
+      });
+    }
+  })();
+  </script>
 </body>
 </html>

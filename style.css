@@ -2063,7 +2063,6 @@ button {
   border-color: #D9C3AC;
   color: #482B19;
 }
-
 /* Supabase Status Pill */
 .supabase-status-pill {
   position: fixed;
@@ -2523,4 +2522,194 @@ button {
 .prescription-input:focus {
   border-color: var(--color-primary);
 
+}
+
+/* ==========================================================================
+   SCROLL UX ENHANCEMENTS
+   ========================================================================== */
+
+/* ── 1. Scroll Progress Bar ────────────────────────────────────────────── */
+#scrollProgressBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: linear-gradient(90deg, #482B19 0%, #9B6B3D 60%, #C89A6A 100%);
+  z-index: 9999;
+  border-radius: 0 2px 2px 0;
+  transition: width 0.12s linear;
+  pointer-events: none;
+  box-shadow: 0 0 8px rgba(72, 43, 25, 0.35);
+}
+
+/* ── 2. Scroll-Down Hint (Hero) ────────────────────────────────────────── */
+.scroll-hint {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 36px;
+  opacity: 1;
+  transition: opacity 0.6s ease;
+  width: fit-content;
+}
+
+.scroll-hint.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.scroll-hint-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  color: var(--color-muted);
+  text-transform: uppercase;
+}
+
+/* Mouse outline */
+.scroll-hint-mouse {
+  width: 22px;
+  height: 34px;
+  border: 2px solid #8A7667;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  padding-top: 5px;
+  flex-shrink: 0;
+}
+
+/* Scrolling wheel dot inside mouse */
+.scroll-hint-wheel {
+  width: 4px;
+  height: 7px;
+  background-color: #8A7667;
+  border-radius: 2px;
+  animation: scrollWheelDrop 1.6s ease-in-out infinite;
+}
+
+@keyframes scrollWheelDrop {
+  0%   { transform: translateY(0);   opacity: 1; }
+  60%  { transform: translateY(9px); opacity: 0; }
+  61%  { transform: translateY(0);   opacity: 0; }
+  100% { transform: translateY(0);   opacity: 1; }
+}
+
+/* ── 3. Side Dot Navigator ─────────────────────────────────────────────── */
+.section-dot-nav {
+  position: fixed;
+  right: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 10px 8px;
+  background: rgba(250, 245, 236, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(200, 181, 158, 0.45);
+  border-radius: 24px;
+  box-shadow: 0 4px 20px rgba(72, 43, 25, 0.09);
+}
+
+.dot-nav-item {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #C8B9A7;
+  border: 2px solid #C8B9A7;
+  transition: background-color 0.25s, transform 0.25s, border-color 0.25s;
+  flex-shrink: 0;
+}
+
+.dot-nav-item::after {
+  content: attr(data-label);
+  position: absolute;
+  right: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #482B19;
+  color: #FAF5EC;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  padding: 4px 10px;
+  border-radius: 4px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  transform: translateY(-50%) translateX(4px);
+  letter-spacing: 0.02em;
+}
+
+.dot-nav-item:hover::after,
+.dot-nav-item.active::after {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+.dot-nav-item:hover {
+  background-color: #8A7667;
+  border-color: #8A7667;
+  transform: scale(1.2);
+}
+
+.dot-nav-item.active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  transform: scale(1.3);
+  box-shadow: 0 0 0 3px rgba(72, 43, 25, 0.18);
+}
+
+/* Hide dot nav on mobile (snap is already off there) */
+@media (max-width: 992px) {
+  .section-dot-nav {
+    display: none;
+  }
+  .scroll-hint {
+    display: none;
+  }
+  #scrollProgressBar {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   PROFILE QUICK-EDIT BAR (overview & vet-overview dashboards)
+   ========================================================================== */
+.profile-edit-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.profile-edit-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  background-color: #FFFFFF;
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  transition: background-color 0.18s, border-color 0.18s, transform 0.18s;
+  cursor: pointer;
+}
+
+.profile-edit-chip svg {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.profile-edit-chip:hover {
+  background-color: var(--bg-sand);
+  border-color: #C4B09A;
+  transform: translateY(-1px);
 }

@@ -38,8 +38,8 @@
         </svg>
       </a>
       <a href="vet-profile.html" class="topbar-user">
-        <span class="user-avatar-sm">AR</span>
-        <span>Dr. Anita Rao</span>
+        <span class="user-avatar-sm" id="vet-topbar-initials">AR</span>
+        <span id="vet-topbar-name">Dr. Anita Rao</span>
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
@@ -111,16 +111,24 @@
 
     <!-- Main Content -->
     <main class="app-main">
-      <div class="page-breadcrumb">Wednesday, 7 October 2026</div>
+      <div class="page-breadcrumb" id="vet-overview-date">Wednesday, 7 October 2026</div>
       <div class="page-header-row">
         <div>
-          <h1 class="page-title">Hello, Dr. Anita Rao.</h1>
+          <h1 class="page-title">Hello, <span id="vet-greeting-name">Dr. Anita Rao</span>.</h1>
           <p class="page-subtitle">Review today’s schedule, consult with active patients, and open your weekly calendar.</p>
         </div>
         <div style="display: flex; gap: 10px;">
           <a href="vet-week-schedule.html" class="btn btn-primary">Week schedule</a>
           <a href="vet-requests-availability.html" class="btn btn-outline">Request &amp; availability</a>
         </div>
+      </div>
+
+      <!-- Quick profile edit shortcut -->
+      <div class="profile-edit-bar">
+        <a href="vet-profile.html" class="profile-edit-chip">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>Edit my profile</span>
+        </a>
       </div>
 
       <!-- ==================== TODAY'S SCHEDULE ONLY ==================== -->
@@ -231,5 +239,39 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
   <script src="script.js"></script>
+
+  <script>
+  /* Personalise vet overview from localStorage */
+  (function () {
+    var name = localStorage.getItem('pawcare_display_name') || 'Dr. Anita Rao';
+
+    /* Ensure vet name has Dr. prefix if it doesn't */
+    var displayName = name;
+    if (!name.toLowerCase().startsWith('dr')) {
+      displayName = 'Dr. ' + name;
+    }
+
+    var topbarName     = document.getElementById('vet-topbar-name');
+    var topbarInitials = document.getElementById('vet-topbar-initials');
+    if (topbarName) topbarName.textContent = displayName;
+    if (topbarInitials) {
+      var parts = name.replace(/^dr\.?\s*/i, '').trim().split(' ');
+      topbarInitials.textContent = parts.length >= 2
+        ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+        : name.slice(0, 2).toUpperCase();
+    }
+
+    var greetingEl = document.getElementById('vet-greeting-name');
+    if (greetingEl) greetingEl.textContent = displayName;
+
+    var dateEl = document.getElementById('vet-overview-date');
+    if (dateEl) {
+      var d = new Date();
+      dateEl.textContent = d.toLocaleDateString('en-IN', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+      });
+    }
+  })();
+  </script>
 </body>
 </html>

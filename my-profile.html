@@ -38,8 +38,8 @@
         </svg>
       </a>
       <a href="my-profile.html" class="topbar-user">
-        <span class="user-avatar-sm">RP</span>
-        <span>Rohan Patil</span>
+        <span class="user-avatar-sm" id="prof-topbar-initials">RP</span>
+        <span id="prof-topbar-name">Rohan Patil</span>
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
@@ -128,9 +128,9 @@
           <!-- Owner Card -->
           <div class="card">
             <div style="width: 54px; height: 54px; border-radius: 4px; background-color: var(--bg-sand); color: var(--color-primary); display: flex; align-items: center; justify-content: center; font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; margin-bottom: 14px;">
-              RP
+              <span id="prof-avatar-initials">RP</span>
             </div>
-            <h2 style="font-family: var(--font-heading); font-size: 1.2rem; font-weight: 800; color: var(--color-heading); margin-bottom: 6px;">Rohan Patil</h2>
+            <h2 style="font-family: var(--font-heading); font-size: 1.2rem; font-weight: 800; color: var(--color-heading); margin-bottom: 6px;" id="prof-card-name">Rohan Patil</h2>
             <div style="margin-bottom: 14px;">
               <span class="badge badge-sand">Pet owner</span>
             </div>
@@ -147,8 +147,8 @@
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
               <img src="assets/pdf_img_4.jpeg" alt="Bruno" style="width: 42px; height: 42px; border-radius: 3px; object-fit: cover;" />
               <div>
-                <div style="font-weight: 800; font-size: 0.85rem; color: var(--color-heading);">Bruno</div>
-                <div style="font-size: 0.72rem; color: var(--color-muted);">Labrador · 3 years</div>
+                <div style="font-weight: 800; font-size: 0.85rem; color: var(--color-heading);" id="prof-pet-name">Bruno</div>
+                <div style="font-size: 0.72rem; color: var(--color-muted);" id="prof-pet-breed">Labrador · 3 years</div>
               </div>
             </div>
             <a href="pet-profile.html" class="btn btn-outline btn-block">View pet profile</a>
@@ -227,5 +227,83 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
   <script src="script.js"></script>
+
+  <script>
+  /* ── Personalise My Profile page from localStorage ── */
+  (function () {
+    /* ── Helpers ── */
+    function getInitials(name) {
+      var parts = name.trim().split(/\s+/);
+      if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      return name.slice(0, 2).toUpperCase();
+    }
+    function titleCase(str) {
+      return str.replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+    }
+    function setVal(id, val) {
+      var el = document.getElementById(id);
+      if (el) el.value = val;
+    }
+    function setText(id, val) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = val;
+    }
+
+    /* ── Read stored values ── */
+    var fullName  = localStorage.getItem('pawcare_display_name') || 'Rohan Patil';
+    var email     = localStorage.getItem('pawcare_email')         || '';
+    var petName   = localStorage.getItem('pawcare_pet_name')      || 'Bruno';
+    var petBreed  = localStorage.getItem('pawcare_pet_breed')     || 'Labrador · 3 years';
+    var phone     = localStorage.getItem('pawcare_phone')         || '';
+
+    var parts     = fullName.trim().split(/\s+/);
+    var firstName = parts[0] || '';
+    var lastName  = parts.slice(1).join(' ') || '';
+    var initials  = getInitials(fullName);
+
+    /* ── Topbar ── */
+    setText('prof-topbar-initials', initials);
+    setText('prof-topbar-name',     fullName);
+
+    /* ── Owner card ── */
+    setText('prof-avatar-initials', initials);
+    setText('prof-card-name',       fullName);
+
+    /* ── Pet companion section ── */
+    var petNameEl  = document.getElementById('prof-pet-name');
+    var petBreedEl = document.getElementById('prof-pet-breed');
+    if (petNameEl)  petNameEl.textContent  = petName;
+    if (petBreedEl) petBreedEl.textContent = petBreed;
+
+    /* ── Form fields ── */
+    setVal('profile-first-name', firstName);
+    setVal('profile-last-name',  lastName);
+    if (email) setVal('profile-email', email);
+    if (phone) setVal('profile-phone', phone);
+
+    /* ── Save button: persist changes back to localStorage ── */
+    var saveBtn = document.querySelector('button[onclick="saveUserProfile(event)"]');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', function () {
+        var f = document.getElementById('profile-first-name');
+        var l = document.getElementById('profile-last-name');
+        var e = document.getElementById('profile-email');
+        var p = document.getElementById('profile-phone');
+        var newName = ((f ? f.value : '') + ' ' + (l ? l.value : '')).trim();
+        if (newName) {
+          localStorage.setItem('pawcare_display_name', newName);
+          /* Refresh all display elements immediately */
+          var ni = getInitials(newName);
+          setText('prof-topbar-initials', ni);
+          setText('prof-topbar-name', newName);
+          setText('prof-avatar-initials', ni);
+          setText('prof-card-name', newName);
+        }
+        if (e && e.value) localStorage.setItem('pawcare_email', e.value);
+        if (p && p.value) localStorage.setItem('pawcare_phone', p.value);
+      });
+    }
+  })();
+  </script>
 </body>
 </html>
