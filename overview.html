@@ -38,8 +38,8 @@
         </svg>
       </a>
       <a href="my-profile.html" class="topbar-user">
-        <span class="user-avatar-sm" id="topbar-initials">RP</span>
-        <span id="topbar-name">Rohan Patil</span>
+        <span class="user-avatar-sm" id="topbar-initials">PO</span>
+        <span id="topbar-name">Pet Owner</span>
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
@@ -117,8 +117,8 @@
       <div class="page-breadcrumb" id="overview-date">Wednesday, 7 October 2026</div>
       <div class="page-header-row">
         <div>
-          <h1 class="page-title">Hello, <span id="overview-greeting-name">Rohan</span>.</h1>
-          <p class="page-subtitle">Here’s everything about Bruno, in one caring place.</p>
+          <h1 class="page-title">Hello, <span id="overview-greeting-name">there</span>.</h1>
+          <p class="page-subtitle">Here’s everything about <span id="overview-pet-name">Bruno</span>, in one caring place.</p>
         </div>
         <a href="book-appointment.html" class="btn btn-primary">+ Book a visit</a>
       </div>
@@ -323,16 +323,17 @@
   <script src="script.js"></script>
 
   <script>
-  /* ── Personalise overview from localStorage ── */
+  /* ── Personalise overview from session / localStorage ── */
   (function () {
-    var name = localStorage.getItem('pawcare_display_name') || 'Rohan Patil';
+    var user = window.PawCareSupabase ? window.PawCareSupabase.auth.getCurrentUser() : null;
+    var name = (user && (user.full_name || user.first_name)) || localStorage.getItem('pawcare_display_name') || 'Pet Owner';
 
     /* Topbar */
     var topbarName     = document.getElementById('topbar-name');
     var topbarInitials = document.getElementById('topbar-initials');
     if (topbarName) topbarName.textContent = name;
     if (topbarInitials) {
-      var parts = name.trim().split(' ');
+      var parts = name.trim().split(/\s+/);
       topbarInitials.textContent = parts.length >= 2
         ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
         : name.slice(0, 2).toUpperCase();
@@ -341,8 +342,8 @@
     /* Page greeting — show just first name */
     var greetingEl = document.getElementById('overview-greeting-name');
     if (greetingEl) {
-      var firstName = name.trim().split(' ')[0];
-      greetingEl.textContent = firstName;
+      var firstName = (user && user.first_name) ? user.first_name : name.trim().split(/\s+/)[0];
+      greetingEl.textContent = firstName || 'there';
     }
 
     /* Live date */

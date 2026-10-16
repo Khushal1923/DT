@@ -53,18 +53,18 @@ function switchRole(role) {
     if (authMode === 'signup') {
       if (emailInput) {
         emailInput.value = '';
-        emailInput.placeholder = 'e.g. rohan.patil@example.com';
+        emailInput.placeholder = 'e.g. you@example.com or username';
       }
       if (passInput) {
         passInput.value = '';
         passInput.placeholder = 'Create a secure password (min. 6 chars)';
       }
       if (nameInput) {
-        nameInput.placeholder = 'e.g. Rohan Patil';
+        nameInput.placeholder = 'e.g. Alex Morgan or your full name';
       }
     } else {
       if (emailInput && !emailInput.value) {
-        emailInput.placeholder = 'e.g. rohan.patil@example.com';
+        emailInput.placeholder = 'e.g. you@example.com or username';
       }
     }
   }
@@ -97,7 +97,7 @@ function toggleAuthMode() {
     // Clear email, password, and name inputs when creating account
     if (emailInput) {
       emailInput.value = '';
-      emailInput.placeholder = currentSignInRole === 'vet' ? 'e.g. dr.anita@clinic.com' : 'e.g. yourname@example.com';
+      emailInput.placeholder = currentSignInRole === 'vet' ? 'e.g. dr.anita@clinic.com' : 'e.g. you@example.com or username';
     }
     if (passInput) {
       passInput.value = '';
@@ -106,7 +106,7 @@ function toggleAuthMode() {
     }
     if (nameInput) {
       nameInput.value = '';
-      nameInput.placeholder = currentSignInRole === 'vet' ? 'e.g. Dr. Anita Rao' : 'e.g. Rohan Patil';
+      nameInput.placeholder = currentSignInRole === 'vet' ? 'e.g. Dr. Anita Rao' : 'e.g. Alex Morgan or your full name';
       nameInput.required = true;
     }
   } else {
@@ -126,7 +126,7 @@ function toggleAuthMode() {
       passInput.placeholder = '••••••••••••';
     }
     if (emailInput) {
-      emailInput.placeholder = currentSignInRole === 'vet' ? 'e.g. anita.rao@companionclinic.com' : 'e.g. rohan.patil@example.com';
+      emailInput.placeholder = currentSignInRole === 'vet' ? 'e.g. anita.rao@companionclinic.com' : 'e.g. you@example.com or username';
     }
   }
 }
@@ -179,13 +179,14 @@ async function handleAuthSubmit(e) {
 
   try {
     if (authMode === 'signup') {
-      const parts = fullName.split(' ');
+      const parts = fullName.trim().split(/\s+/);
       const firstName = parts[0] || (currentSignInRole === 'vet' ? 'Dr. Anita' : 'Pet');
       const lastName = parts.slice(1).join(' ') || (currentSignInRole === 'vet' ? 'Rao' : 'Owner');
 
       const res = await window.PawCareSupabase.auth.signUp(email, password, currentSignInRole, {
         first_name: firstName,
-        last_name: lastName
+        last_name: lastName,
+        full_name: fullName.trim()
       });
 
       if (res && res.requiresEmailConfirmation) {
@@ -197,8 +198,8 @@ async function handleAuthSubmit(e) {
         }
       } else {
         setTimeout(() => {
-          // Pet owners go to set profile & pet details, veterinarians go to clinic setup
-          window.location.href = currentSignInRole === 'vet' ? 'vet-profile.html?setup=1' : 'my-profile.html?setup=1';
+          // Go to dashboard so user immediately sees their name
+          window.location.href = currentSignInRole === 'vet' ? 'vet-profile.html?setup=1' : 'overview.html';
         }, 500);
       }
     } else {
@@ -280,7 +281,7 @@ async function acceptRequest(cardId, apptId = 'a1111111-1111-1111-1111-111111111
       id: apptId,
       status: 'confirmed',
       pet_name: 'Bruno',
-      owner_name: 'Rohan Patil',
+      owner_name: 'Pet Owner',
       date: 'Fri, 9 Oct 2026',
       time: '10:30 am',
       reason: 'Rabies booster'
@@ -325,11 +326,11 @@ async function savePetProfile(e) {
   const ownerId = user?.id || '00000000-0000-0000-0000-000000000001';
 
   const updates = {
-    name: nameEl && nameEl.value.trim() ? nameEl.value.trim() : 'My Pet',
+    name: nameEl && nameEl.value.trim() ? nameEl.value.trim() : 'Bruno',
     species: speciesEl ? speciesEl.value : 'Dog',
-    breed: breedEl && breedEl.value.trim() ? breedEl.value.trim() : 'Companion',
-    age: ageEl && ageEl.value.trim() ? ageEl.value.trim() : '1 year',
-    weight: weightEl && weightEl.value ? parseFloat(weightEl.value) || 10 : 10,
+    breed: breedEl && breedEl.value.trim() ? breedEl.value.trim() : 'Labrador',
+    age: ageEl && ageEl.value.trim() ? ageEl.value.trim() : '3 years',
+    weight: weightEl && weightEl.value ? parseFloat(weightEl.value) || 28.4 : 28.4,
     sex: sexEl ? sexEl.value : 'Male · Neutered',
     microchip: microchipEl ? microchipEl.value : 'Not added',
     allergies: allergiesEl ? allergiesEl.value : 'None reported',
@@ -340,9 +341,22 @@ async function savePetProfile(e) {
     await window.PawCareSupabase.pets.saveForOwner(ownerId, updates);
   }
 
+  localStorage.setItem('pawcare_pet_name', updates.name);
+  localStorage.setItem('pawcare_pet_breed', `${updates.breed} · ${updates.age}`);
+
+  // Immediate UI reflection on pet-profile page
+  const titleName = document.getElementById('pet-title-name');
+  if (titleName) titleName.textContent = updates.name;
+  const subtitleName = document.getElementById('pet-subtitle-name');
+  if (subtitleName) subtitleName.textContent = updates.name;
+  const cardName = document.querySelector('.grid-profile-layout .card h2');
+  if (cardName) cardName.textContent = updates.name;
+  const cardBadge = document.querySelector('.grid-profile-layout .card .badge');
+  if (cardBadge) cardBadge.textContent = `${updates.species} · ${updates.breed}`;
+
   setTimeout(() => {
     window.location.href = 'overview.html';
-  }, 500);
+  }, 400);
 }
 
 // Save User Profile for Current User
@@ -359,10 +373,16 @@ async function saveUserProfile(e) {
   const user = window.PawCareSupabase ? window.PawCareSupabase.auth.getCurrentUser() : null;
   const targetId = user?.id || '00000000-0000-0000-0000-000000000001';
 
+  const firstName = firstEl && firstEl.value.trim() ? firstEl.value.trim() : (user?.first_name || 'Pet');
+  const lastName = lastEl && lastEl.value.trim() ? lastEl.value.trim() : '';
+  const fullName = `${firstName} ${lastName}`.trim();
+  const email = emailEl && emailEl.value.trim() ? emailEl.value.trim() : (user?.email || '');
+
   const updates = {
-    first_name: firstEl && firstEl.value.trim() ? firstEl.value.trim() : (user?.first_name || 'Pet'),
-    last_name: lastEl && lastEl.value.trim() ? lastEl.value.trim() : (user?.last_name || 'Owner'),
-    email: emailEl && emailEl.value.trim() ? emailEl.value.trim() : (user?.email || ''),
+    first_name: firstName,
+    last_name: lastName,
+    full_name: fullName,
+    email: email,
     phone: phoneEl ? phoneEl.value.trim() : '',
     address: addressEl ? addressEl.value.trim() : '',
     city: cityEl ? cityEl.value.trim() : '',
@@ -373,13 +393,34 @@ async function saveUserProfile(e) {
     await window.PawCareSupabase.profiles.update(targetId, updates);
   }
 
+  // Update localStorage helper values immediately
+  localStorage.setItem('pawcare_display_name', fullName);
+  if (email) localStorage.setItem('pawcare_email', email);
+  if (updates.phone) localStorage.setItem('pawcare_phone', updates.phone);
+
+  // Update UI on page immediately
+  const initials = ((firstName ? firstName[0] : 'P') + (lastName ? lastName[0] : '')).toUpperCase();
+  const cardName = document.getElementById('prof-card-name');
+  if (cardName) cardName.textContent = fullName;
+  const cardInit = document.getElementById('prof-avatar-initials');
+  if (cardInit) cardInit.textContent = initials;
+  const topbarName = document.getElementById('prof-topbar-name');
+  if (topbarName) topbarName.textContent = fullName;
+  const topbarInit = document.getElementById('prof-topbar-initials');
+  if (topbarInit) topbarInit.textContent = initials;
+  const greetingEl = document.getElementById('prof-greeting-name');
+  if (greetingEl) greetingEl.textContent = firstName;
+
   const params = new URLSearchParams(window.location.search);
   const isSetup = params.get('setup') === '1';
 
-  setTimeout(() => {
-    // If in onboarding setup flow, proceed to step 2 (pet profile)
-    window.location.href = isSetup ? 'pet-profile.html?setup=1' : 'overview.html';
-  }, 500);
+  if (isSetup) {
+    setTimeout(() => {
+      window.location.href = 'pet-profile.html?setup=1';
+    }, 400);
+  } else {
+    window.PawCareSupabase?.showToast('Profile saved successfully!', 'success');
+  }
 }
 
 // Save Veterinarian Practice Profile
@@ -429,7 +470,7 @@ async function submitBookingRequest(e) {
   const appointmentData = {
     id: 'apt_' + Date.now(),
     owner_id: user?.id || '00000000-0000-0000-0000-000000000001',
-    owner_name: user?.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : 'Rohan Patil',
+    owner_name: user?.full_name || (user?.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : 'Pet Owner'),
     pet_id: pet?.id || 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
     pet_name: pet?.name || 'Bruno',
     pet_breed: pet?.breed || 'Labrador',
@@ -508,13 +549,29 @@ async function hydrateWorkspaceData() {
   const params = new URLSearchParams(window.location.search);
   const isSetup = params.get('setup') === '1';
 
+  // --- 0. Topbar User Avatar & Name across all pages ---
+  const displayName = user?.full_name || (user?.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : null) || localStorage.getItem('pawcare_display_name') || 'Pet Owner';
+  const nameParts = displayName.trim().split(/\s+/);
+  const initials = nameParts.length >= 2 ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase() : displayName.slice(0, 2).toUpperCase();
+
+  document.querySelectorAll('.topbar-user').forEach(topbar => {
+    const initEl = topbar.querySelector('.user-avatar-sm') || topbar.querySelector('#topbar-initials') || topbar.querySelector('#prof-topbar-initials') || topbar.querySelector('#vet-topbar-initials');
+    if (initEl) initEl.textContent = initials;
+    const nameEl = topbar.querySelector('#topbar-name') || topbar.querySelector('#prof-topbar-name') || topbar.querySelector('#vet-topbar-name') || topbar.querySelector('span:not(.user-avatar-sm)');
+    if (nameEl) nameEl.textContent = displayName;
+  });
+
+  const summaryOwner = document.getElementById('summary-owner-name');
+  if (summaryOwner) summaryOwner.textContent = displayName;
+
   try {
-    // 1. Hydrate Pet Data (Overview, Health Records, Pet Profile)
+    // 1. Hydrate Pet Data (Overview, Health Records, Pet Profile, My Profile companion)
     const pet = await window.PawCareSupabase.pets.getForOwner(user?.id);
 
     // Pet Profile Form (pet-profile.html)
     if (document.getElementById('pet-name')) {
       const nameEl = document.getElementById('pet-name');
+      const speciesEl = document.getElementById('pet-species');
       const breedEl = document.getElementById('pet-breed');
       const ageEl = document.getElementById('pet-age');
       const weightEl = document.getElementById('pet-weight');
@@ -528,14 +585,7 @@ async function hydrateWorkspaceData() {
         if (weightEl) weightEl.value = pet.weight || '';
         if (allergiesEl) allergiesEl.value = pet.allergies || '';
         if (illnessEl) illnessEl.value = pet.past_illness || '';
-      } else {
-        // New user setting up their pet
-        if (nameEl) { nameEl.value = ''; nameEl.placeholder = 'e.g. Bruno, Max, Bella'; }
-        if (breedEl) { breedEl.value = ''; breedEl.placeholder = 'e.g. Labrador, Golden Retriever'; }
-        if (ageEl) { ageEl.value = ''; ageEl.placeholder = 'e.g. 2 years'; }
-        if (weightEl) { weightEl.value = ''; weightEl.placeholder = 'e.g. 28.4'; }
-        if (allergiesEl) { allergiesEl.value = ''; allergiesEl.placeholder = 'e.g. Chicken protein or None'; }
-        if (illnessEl) { illnessEl.value = ''; illnessEl.placeholder = 'e.g. Routine checkup'; }
+        if (speciesEl && pet.species) speciesEl.value = pet.species;
       }
 
       // Left card photo details
@@ -543,6 +593,12 @@ async function hydrateWorkspaceData() {
       const petCardBadge = document.querySelector('.grid-profile-layout .card .badge');
       if (petCardName) petCardName.textContent = pet ? pet.name : 'Your companion';
       if (petCardBadge) petCardBadge.textContent = pet ? `${pet.species || 'Dog'} · ${pet.breed || 'Companion'}` : 'New companion';
+
+      // Header title & subtitle
+      const petTitle = document.getElementById('pet-title-name');
+      if (petTitle && pet?.name) petTitle.textContent = pet.name;
+      const petSub = document.getElementById('pet-subtitle-name');
+      if (petSub && pet?.name) petSub.textContent = pet.name;
 
       // Setup Step 2 Banner
       if (isSetup) {
@@ -571,6 +627,12 @@ async function hydrateWorkspaceData() {
       }
     }
 
+    // Companion card on My Profile (my-profile.html)
+    const profPetName = document.getElementById('prof-pet-name');
+    if (profPetName && pet?.name) profPetName.textContent = pet.name;
+    const profPetBreed = document.getElementById('prof-pet-breed');
+    if (profPetBreed && pet) profPetBreed.textContent = `${pet.breed || 'Labrador'} · ${pet.age || '3 years'}`;
+
     // Overview Pet Summary Card (overview.html)
     const overviewName = document.querySelector('.pet-summary-name');
     const overviewMeta = document.querySelector('.pet-summary-meta');
@@ -592,13 +654,9 @@ async function hydrateWorkspaceData() {
     }
 
     // Overview Greeting
-    const greetingEl = document.querySelector('.page-header-row .page-title');
-    if (greetingEl && user && user.first_name) {
-      if (user.role === 'vet') {
-        greetingEl.textContent = `Hello, Dr. ${user.first_name} ${user.last_name || ''}.`.trim();
-      } else {
-        greetingEl.textContent = `Hello, ${user.first_name}.`;
-      }
+    const overviewGreeting = document.getElementById('overview-greeting-name');
+    if (overviewGreeting) {
+      overviewGreeting.textContent = user?.first_name || (user?.full_name ? user.full_name.split(' ')[0] : 'there');
     }
 
     // Health Records Hero Card (health-records.html)
@@ -620,12 +678,13 @@ async function hydrateWorkspaceData() {
 
   try {
     // 2. Hydrate User Profile Form (my-profile.html)
-    if (document.getElementById('profile-first-name')) {
+    if (document.getElementById('profile-first-name') || document.getElementById('prof-card-name')) {
       const profile = await window.PawCareSupabase.profiles.get(user?.id);
       if (profile || user) {
         const pFirst = profile?.first_name || user?.first_name || '';
         const pLast = profile?.last_name || user?.last_name || '';
         const pEmail = profile?.email || user?.email || '';
+        const pFull = profile?.full_name || `${pFirst} ${pLast}`.trim();
 
         if (document.getElementById('profile-first-name')) document.getElementById('profile-first-name').value = pFirst;
         if (document.getElementById('profile-last-name')) document.getElementById('profile-last-name').value = pLast;
@@ -636,16 +695,19 @@ async function hydrateWorkspaceData() {
         if (document.getElementById('profile-postal')) document.getElementById('profile-postal').value = profile?.postal_code || '';
 
         // Left Owner Card
-        const cardInitial = document.querySelector('.grid-profile-layout .card > div:first-child');
-        const cardName = document.querySelector('.grid-profile-layout .card h2');
+        const cardInitial = document.getElementById('prof-avatar-initials') || document.querySelector('.grid-profile-layout .card > div:first-child');
+        const cardName = document.getElementById('prof-card-name') || document.querySelector('.grid-profile-layout .card h2');
         const cardMember = document.querySelector('.grid-profile-layout .card .stat-value');
+        const greetingName = document.getElementById('prof-greeting-name');
+        if (greetingName && pFirst) greetingName.textContent = pFirst;
+
         if (cardInitial) {
           const init1 = pFirst ? pFirst[0].toUpperCase() : 'P';
           const init2 = pLast ? pLast[0].toUpperCase() : 'O';
           cardInitial.textContent = `${init1}${init2}`;
         }
         if (cardName) {
-          cardName.textContent = `${pFirst} ${pLast}`.trim();
+          cardName.textContent = pFull;
         }
         if (cardMember) {
           cardMember.textContent = profile?.member_since || 'October 2026';
@@ -772,14 +834,16 @@ async function hydrateWorkspaceData() {
 
   // 4. Topbar User Name across all workspace pages
   try {
-    if (user && user.first_name) {
-      const userSpan = document.querySelector('.topbar-user span:not(.user-avatar-sm)');
-      const avatarSpan = document.querySelector('.topbar-user .user-avatar-sm');
-      if (userSpan) userSpan.textContent = user.role === 'vet' ? `Dr. ${user.first_name} ${user.last_name || ''}`.trim() : `${user.first_name} ${user.last_name || ''}`.trim();
-      if (avatarSpan) {
-        avatarSpan.textContent = `${user.first_name[0] || 'U'}${user.last_name ? user.last_name[0] : ''}`;
-      }
-    }
+    const activeName = (user && (user.full_name || (user.first_name ? (user.role === 'vet' ? `Dr. ${user.first_name} ${user.last_name || ''}`.trim() : `${user.first_name} ${user.last_name || ''}`.trim()) : null))) || localStorage.getItem('pawcare_display_name') || 'Pet Owner';
+    const parts = activeName.trim().split(/\s+/);
+    const inits = parts.length >= 2 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() : activeName.slice(0, 2).toUpperCase();
+
+    document.querySelectorAll('.topbar-user').forEach(topbar => {
+      const userSpan = topbar.querySelector('#topbar-name') || topbar.querySelector('#prof-topbar-name') || topbar.querySelector('#vet-topbar-name') || topbar.querySelector('span:not(.user-avatar-sm)');
+      const avatarSpan = topbar.querySelector('#topbar-initials') || topbar.querySelector('#prof-topbar-initials') || topbar.querySelector('#vet-topbar-initials') || topbar.querySelector('.user-avatar-sm');
+      if (userSpan) userSpan.textContent = activeName;
+      if (avatarSpan) avatarSpan.textContent = inits;
+    });
   } catch (e) {
     console.warn('Could not update topbar user name', e);
   }
@@ -1000,7 +1064,7 @@ const patientRecordsData = {
     age: '3 years',
     weight: '28.4 kg',
     sex: 'Male · Neutered',
-    owner: 'Rohan Patil',
+    owner: 'Pet Owner',
     photo: 'assets/pdf_img_4.jpeg',
     badge: 'Dog · Labrador',
     allergyTitle: 'Key allergy',
@@ -1020,7 +1084,7 @@ const patientRecordsData = {
       { vaccine: 'DHPP Core', date: '21 Mar 2026', nextDue: '21 Dec 2026', status: 'Up to date' }
     ],
     followup: '14 Oct 2026 · 11:00 am · Ear follow-up recheck with Dr. Anita Rao',
-    communication: 'Advised Rohan to maintain strict chicken-free diet. Follow up in 7 days. Rabies booster scheduled for Fri, 9 Oct.',
+    communication: 'Advised owner to maintain strict chicken-free diet. Follow up in 7 days. Rabies booster scheduled for Fri, 9 Oct.',
     history: [
       { date: '7 Oct 2026', title: 'Ear inflammation follow-up', desc: 'Otitis externa resolving. Prescribed Otomax drops.' },
       { date: '28 Aug 2026', title: 'Mild ear infection & redness', desc: 'Presented with head shaking. Swab confirmed fungal otitis.' },

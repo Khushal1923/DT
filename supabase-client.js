@@ -16,10 +16,11 @@
       {
         id: '00000000-0000-0000-0000-000000000001',
         role: 'owner',
-        first_name: 'Rohan',
-        last_name: 'Patil',
-        full_name: 'Rohan Patil',
-        email: 'rohan.patil@example.com',
+        first_name: 'Pet',
+        last_name: 'Owner',
+        full_name: 'Pet Owner',
+        username: 'owner',
+        email: 'owner@example.com',
         phone: '+91 98765 43210',
         address: '18 Prabhat Road, Deccan Gymkhana',
         city: 'Pune',
@@ -277,7 +278,24 @@
     try {
       const data = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (data) {
-        return JSON.parse(data);
+        const parsed = JSON.parse(data);
+        if (parsed && Array.isArray(parsed.profiles)) {
+          let modified = false;
+          parsed.profiles.forEach(p => {
+            if (p.first_name === 'Rohan' && p.last_name === 'Patil') {
+              p.first_name = 'Pet';
+              p.last_name = 'Owner';
+              p.full_name = 'Pet Owner';
+              p.username = 'owner';
+              p.email = 'owner@example.com';
+              modified = true;
+            }
+          });
+          if (modified) {
+            setLocalStore(parsed);
+          }
+        }
+        return parsed;
       }
     } catch (e) {
       console.warn('Could not read from local storage store', e);
@@ -303,6 +321,29 @@
 
     // Initialize Supabase client
     init() {
+      // Clean up any legacy 'Rohan' values
+      const legacyName = localStorage.getItem('pawcare_display_name');
+      if (legacyName && (legacyName.trim() === 'Rohan Patil' || legacyName.trim() === 'Rohan')) {
+        localStorage.removeItem('pawcare_display_name');
+      }
+      const legacyEmail = localStorage.getItem('pawcare_email');
+      if (legacyEmail && legacyEmail.includes('rohan.patil')) {
+        localStorage.removeItem('pawcare_email');
+      }
+      const legacySession = localStorage.getItem('paw_care_session');
+      if (legacySession && legacySession.includes('Rohan')) {
+        try {
+          const s = JSON.parse(legacySession);
+          if (s.user && (s.user.first_name === 'Rohan' || s.user.email === 'rohan.patil@example.com')) {
+            s.user.first_name = 'Pet';
+            s.user.last_name = 'Owner';
+            s.user.full_name = 'Pet Owner';
+            s.user.email = 'owner@example.com';
+            localStorage.setItem('paw_care_session', JSON.stringify(s));
+          }
+        } catch (e) {}
+      }
+
       const url = DEFAULT_CONFIG.url;
       const key = DEFAULT_CONFIG.anonKey;
 
@@ -392,13 +433,14 @@
 
     // --- 5. AUTHENTICATION SERVICE ---
     auth: {
-      async signIn(email, password, role = 'owner') {
-        email = (email || '').trim().toLowerCase();
+      async signIn(identifier, password, role = 'owner') {
+        identifier = (identifier || '').trim();
+        const lowerIdent = identifier.toLowerCase();
         
-        // 1. If Supabase is live, attempt Supabase Auth
-        if (PawCareSupabase.isConfigured()) {
+        // 1. If Supabase is live, attempt Supabase Auth if identifier is an email
+        if (PawCareSupabase.isConfigured() && lowerIdent.includes('@')) {
           try {
-            const { data, error } = await PawCareSupabase.client.auth.signInWithPassword({ email, password });
+            const { data, error } = await PawCareSupabase.client.auth.signInWithPassword({ email: lowerIdent, password });
             if (!error && data?.user) {
               const user = data.user;
               // fetch profile
@@ -410,71 +452,184 @@
                 .single();
               profile = profData;
 
+              const fName = profile?.first_name || (role === 'vet' ? 'Anita' : 'Pet');
+              const lName = profile?.last_name || (role === 'vet' ? 'Rao' : 'Owner');
+              const fullName = profile?.full_name || `${fName} ${lName}`.trim();
+
               const sessionData = {
                 user: {
                   id: user.id,
                   email: user.email,
+                  username: profile?.username || user.email.split('@')[0],
                   role: profile?.role || role,
-                  first_name: profile?.first_name || (role === 'vet' ? 'Anita' : 'Rohan'),
-                  last_name: profile?.last_name || (role === 'vet' ? 'Rao' : 'Patil')
+                  first_name: fName,
+                  last_name: lName,
+                  full_name: fullName
                 },
                 token: data.session?.access_token || 'supabase_token'
               };
               localStorage.setItem('paw_care_session', JSON.stringify(sessionData));
-              PawCareSupabase.showToast(`Welcome back, ${sessionData.user.first_name}!`, 'success');
+              localStorage.setItem('pawcare_display_name', fullName);
+              localStorage.setItem('pawcare_email', user.email);
+              localStorage.setItem('pawcare_role', sessionData.user.role);
+              PawCareSupabase.showToast(`Welcome back, ${fName}!`, 'success');
               return { success: true, session: sessionData };
             }
           } catch (e) {
-            console.warn('Supabase auth error, falling back to profile check / demo login', e);
+            console.warn('Supabase auth error, falling back to local database lookup', e);
           }
         }
 
-        // 2. Demo / Fallback login
+        // 2. Local database store lookup / auto-registration
         const store = getLocalStore();
-        const found = store.profiles.find(p => p.email?.toLowerCase() === email || p.role === role);
-        const activeProfile = found || (role === 'vet' ? store.profiles[1] : store.profiles[0]);
+        
+        // Find existing profile by email, username, or full name
+        let found = store.profiles.find(p => 
+          (p.email && p.email.toLowerCase() === lowerIdent) ||
+          (p.username && p.username.toLowerCase() === lowerIdent) ||
+          (p.full_name && p.full_name.toLowerCase() === lowerIdent)
+        );
 
+        if (!found) {
+          // Create new user profile dynamically for this username/email
+          let derivedFirst = '';
+          let derivedLast = '';
+          let derivedUsername = identifier;
+          let derivedEmail = lowerIdent.includes('@') ? lowerIdent : `${lowerIdent.toLowerCase()}@pawcare.local`;
+
+          if (lowerIdent.includes('@')) {
+            const localPart = lowerIdent.split('@')[0];
+            const cleanParts = localPart.replace(/[._\-]/g, ' ').split(/\s+/);
+            derivedFirst = cleanParts[0].charAt(0).toUpperCase() + cleanParts[0].slice(1);
+            derivedLast = cleanParts.slice(1).map(c => c.charAt(0).toUpperCase() + c.slice(1)).join(' ');
+            derivedUsername = localPart;
+          } else {
+            derivedFirst = identifier.charAt(0).toUpperCase() + identifier.slice(1);
+            derivedLast = '';
+          }
+
+          found = {
+            id: 'usr_' + Date.now(),
+            role: role,
+            username: derivedUsername,
+            first_name: derivedFirst,
+            last_name: derivedLast,
+            full_name: `${derivedFirst} ${derivedLast}`.trim(),
+            email: derivedEmail,
+            phone: '',
+            address: '',
+            city: '',
+            postal_code: '',
+            member_since: 'October 2026',
+            avatar_url: null
+          };
+
+          store.profiles.push(found);
+
+          // Create an associated pet for this new owner so all pet details are editable
+          if (role === 'owner') {
+            const newPet = {
+              id: 'pet_' + Date.now(),
+              owner_id: found.id,
+              name: 'Bruno',
+              species: 'Dog',
+              breed: 'Labrador',
+              age: '3 years',
+              weight: 28.4,
+              weight_measured_at: 'Today',
+              sex: 'Male · Neutered',
+              microchip: 'Not added',
+              allergies: 'None reported',
+              past_illness: 'None',
+              photo_url: 'assets/pdf_img_4.jpeg'
+            };
+            store.pets.unshift(newPet);
+          }
+
+          setLocalStore(store);
+        } else {
+          // Ensure this owner has an associated pet in store
+          if (role === 'owner') {
+            const hasPet = store.pets.some(p => p.owner_id === found.id);
+            if (!hasPet) {
+              const newPet = {
+                id: 'pet_' + Date.now(),
+                owner_id: found.id,
+                name: 'Bruno',
+                species: 'Dog',
+                breed: 'Labrador',
+                age: '3 years',
+                weight: 28.4,
+                weight_measured_at: 'Today',
+                sex: 'Male · Neutered',
+                microchip: 'Not added',
+                allergies: 'None reported',
+                past_illness: 'None',
+                photo_url: 'assets/pdf_img_4.jpeg'
+              };
+              store.pets.unshift(newPet);
+              setLocalStore(store);
+            }
+          }
+        }
+
+        const fullName = found.full_name || `${found.first_name || ''} ${found.last_name || ''}`.trim() || identifier;
         const sessionData = {
           user: {
-            id: activeProfile.id,
-            email: activeProfile.email,
-            role: role,
-            first_name: activeProfile.first_name,
-            last_name: activeProfile.last_name
+            id: found.id,
+            email: found.email || '',
+            username: found.username || identifier,
+            role: found.role || role,
+            first_name: found.first_name || identifier,
+            last_name: found.last_name || '',
+            full_name: fullName
           },
-          token: 'demo_token_' + Date.now()
+          token: 'token_' + Date.now()
         };
+
         localStorage.setItem('paw_care_session', JSON.stringify(sessionData));
-        PawCareSupabase.showToast(`Signed in as ${sessionData.user.first_name} (${role === 'vet' ? 'Veterinarian' : 'Pet Owner'})`, 'success');
+        localStorage.setItem('pawcare_display_name', fullName);
+        localStorage.setItem('pawcare_email', sessionData.user.email);
+        localStorage.setItem('pawcare_role', sessionData.user.role);
+
+        PawCareSupabase.showToast(`Signed in as ${sessionData.user.first_name}!`, 'success');
         return { success: true, session: sessionData };
       },
 
-      async signUp(email, password, role = 'owner', profileData = {}) {
-        email = (email || '').trim().toLowerCase();
+      async signUp(identifier, password, role = 'owner', profileData = {}) {
+        identifier = (identifier || '').trim();
+        const lowerIdent = identifier.toLowerCase();
+        const fullName = profileData.full_name || `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim();
+        const parts = fullName ? fullName.split(/\s+/) : [];
+        const firstName = profileData.first_name || parts[0] || identifier.charAt(0).toUpperCase() + identifier.slice(1);
+        const lastName = profileData.last_name !== undefined ? profileData.last_name : parts.slice(1).join(' ');
+        const finalFullName = `${firstName} ${lastName}`.trim();
 
-        if (PawCareSupabase.isConfigured()) {
+        if (PawCareSupabase.isConfigured() && lowerIdent.includes('@')) {
           try {
             const { data, error } = await PawCareSupabase.client.auth.signUp({
-              email,
+              email: lowerIdent,
               password,
               options: {
                 data: {
                   role,
-                  first_name: profileData.first_name || 'Pet',
-                  last_name: profileData.last_name || 'Owner'
+                  first_name: firstName,
+                  last_name: lastName,
+                  full_name: finalFullName,
+                  username: identifier
                 }
               }
             });
             if (error) throw error;
 
             if (data?.user) {
-              // Create profile in profiles table
               await PawCareSupabase.client.from('profiles').upsert({
                 id: data.user.id,
-                email: email,
+                email: lowerIdent,
                 role: role,
-                first_name: profileData.first_name || (role === 'vet' ? 'Dr.' : 'Pet'),
-                last_name: profileData.last_name || 'Owner'
+                first_name: firstName,
+                last_name: lastName,
+                username: identifier
               });
             }
             const hasSession = !!data?.session;
@@ -483,45 +638,93 @@
                 user: {
                   id: data.user.id,
                   email: data.user.email,
+                  username: identifier,
                   role: role,
-                  first_name: profileData.first_name || (role === 'vet' ? 'Dr.' : 'Pet'),
-                  last_name: profileData.last_name || 'Owner'
+                  first_name: firstName,
+                  last_name: lastName,
+                  full_name: finalFullName
                 },
                 token: data.session.access_token
               };
               localStorage.setItem('paw_care_session', JSON.stringify(sessionData));
+              localStorage.setItem('pawcare_display_name', finalFullName);
+              localStorage.setItem('pawcare_email', lowerIdent);
+              localStorage.setItem('pawcare_role', role);
             }
             PawCareSupabase.showToast('Account created in Supabase!', 'success');
             return { success: true, data, requiresEmailConfirmation: !hasSession };
           } catch (e) {
-            console.warn('Supabase sign up error', e);
-            throw e;
+            console.warn('Supabase sign up error, continuing with local store', e);
           }
         }
 
-        // Demo fallback
+        // Local store registration
         const store = getLocalStore();
-        const newProfile = {
+        let existing = store.profiles.find(p => 
+          (p.email && p.email.toLowerCase() === lowerIdent) ||
+          (p.username && p.username.toLowerCase() === lowerIdent)
+        );
+
+        const newProfile = existing || {
           id: 'usr_' + Date.now(),
-          email,
-          role,
-          first_name: profileData.first_name || 'New',
-          last_name: profileData.last_name || 'User',
-          member_since: 'Today'
+          role: role,
+          username: identifier,
+          first_name: firstName,
+          last_name: lastName,
+          full_name: finalFullName,
+          email: lowerIdent.includes('@') ? lowerIdent : `${lowerIdent.toLowerCase()}@pawcare.local`,
+          phone: '',
+          address: '',
+          city: '',
+          postal_code: '',
+          member_since: 'October 2026',
+          avatar_url: null
         };
-        store.profiles.push(newProfile);
+
+        if (existing) {
+          existing.first_name = firstName;
+          existing.last_name = lastName;
+          existing.full_name = finalFullName;
+        } else {
+          store.profiles.push(newProfile);
+          if (role === 'owner') {
+            const newPet = {
+              id: 'pet_' + Date.now(),
+              owner_id: newProfile.id,
+              name: 'Bruno',
+              species: 'Dog',
+              breed: 'Labrador',
+              age: '3 years',
+              weight: 28.4,
+              weight_measured_at: 'Today',
+              sex: 'Male · Neutered',
+              microchip: 'Not added',
+              allergies: 'None reported',
+              past_illness: 'None',
+              photo_url: 'assets/pdf_img_4.jpeg'
+            };
+            store.pets.unshift(newPet);
+          }
+        }
         setLocalStore(store);
+
         const sessionData = {
           user: {
             id: newProfile.id,
             email: newProfile.email,
+            username: newProfile.username || identifier,
             role: role,
             first_name: newProfile.first_name,
-            last_name: newProfile.last_name
+            last_name: newProfile.last_name,
+            full_name: newProfile.full_name
           },
-          token: 'demo_token_' + Date.now()
+          token: 'token_' + Date.now()
         };
         localStorage.setItem('paw_care_session', JSON.stringify(sessionData));
+        localStorage.setItem('pawcare_display_name', newProfile.full_name);
+        localStorage.setItem('pawcare_email', newProfile.email);
+        localStorage.setItem('pawcare_role', role);
+
         return { success: true, profile: newProfile, requiresEmailConfirmation: false };
       },
 
@@ -534,6 +737,8 @@
           }
         }
         localStorage.removeItem('paw_care_session');
+        localStorage.removeItem('pawcare_display_name');
+        localStorage.removeItem('pawcare_email');
         PawCareSupabase.showToast('Signed out of Paw Care.', 'info');
         setTimeout(() => {
           window.location.href = 'signin.html';
@@ -572,9 +777,9 @@
 
       async getForOwner(ownerId) {
         const currentUser = PawCareSupabase.auth.getCurrentUser();
-        const targetOwnerId = ownerId || currentUser?.id || '00000000-0000-0000-0000-000000000001';
+        const targetOwnerId = ownerId || currentUser?.id;
 
-        if (PawCareSupabase.isConfigured()) {
+        if (PawCareSupabase.isConfigured() && targetOwnerId) {
           try {
             const { data, error } = await PawCareSupabase.client
               .from('pets')
@@ -590,21 +795,39 @@
         }
 
         const store = getLocalStore();
-        const found = store.pets.find(p => p.owner_id === targetOwnerId);
-        if (found) return found;
-
-        // If default demo user, return Bruno
-        if (targetOwnerId === '00000000-0000-0000-0000-000000000001') {
-          return store.pets[0];
+        if (targetOwnerId) {
+          const found = store.pets.find(p => p.owner_id === targetOwnerId);
+          if (found) return found;
         }
 
-        // Newly registered user with no pet added yet
-        return null;
+        // If no pet found for this owner, create and link one
+        if (targetOwnerId) {
+          const newPet = {
+            id: 'pet_' + Date.now(),
+            owner_id: targetOwnerId,
+            name: 'Bruno',
+            species: 'Dog',
+            breed: 'Labrador',
+            age: '3 years',
+            weight: 28.4,
+            weight_measured_at: 'Today',
+            sex: 'Male · Neutered',
+            microchip: 'Not added',
+            allergies: 'None reported',
+            past_illness: 'None',
+            photo_url: 'assets/pdf_img_4.jpeg'
+          };
+          store.pets.unshift(newPet);
+          setLocalStore(store);
+          return newPet;
+        }
+
+        return store.pets[0];
       },
 
       async saveForOwner(ownerId, petData) {
         const currentUser = PawCareSupabase.auth.getCurrentUser();
-        const targetOwnerId = ownerId || currentUser?.id || '00000000-0000-0000-0000-000000000001';
+        const targetOwnerId = ownerId || currentUser?.id || 'usr_default';
 
         const store = getLocalStore();
         let existingIndex = store.pets.findIndex(p => p.owner_id === targetOwnerId);
@@ -613,15 +836,16 @@
         const fullPetRecord = {
           id: petId,
           owner_id: targetOwnerId,
-          name: petData.name || 'My Pet',
+          name: petData.name && petData.name.trim() ? petData.name.trim() : 'Bruno',
           species: petData.species || 'Dog',
-          breed: petData.breed || 'Companion',
-          age: petData.age || '1 year',
+          breed: petData.breed && petData.breed.trim() ? petData.breed.trim() : 'Labrador',
+          age: petData.age && petData.age.trim() ? petData.age.trim() : '3 years',
           weight: petData.weight ? parseFloat(petData.weight) || 10 : 10,
-          sex: petData.sex || 'Male',
+          sex: petData.sex || 'Male · Neutered',
           microchip: petData.microchip || 'Not added',
           allergies: petData.allergies || 'None reported',
-          past_illness: petData.past_illness || 'None'
+          past_illness: petData.past_illness || 'None',
+          photo_url: petData.photo_url || (existingIndex >= 0 ? store.pets[existingIndex].photo_url : 'assets/pdf_img_4.jpeg')
         };
 
         if (PawCareSupabase.isConfigured()) {
@@ -644,6 +868,10 @@
           store.pets.unshift(fullPetRecord);
         }
         setLocalStore(store);
+
+        // Also save convenient helper keys in localStorage
+        localStorage.setItem('pawcare_pet_name', fullPetRecord.name);
+        localStorage.setItem('pawcare_pet_breed', `${fullPetRecord.breed} · ${fullPetRecord.age}`);
 
         PawCareSupabase.showToast('Pet profile saved successfully!', 'success');
         if (window.PawCareRealtime) {
@@ -711,18 +939,21 @@
           }
         }
         const store = getLocalStore();
-        const found = store.profiles.find(p => p.id === targetId || (currentUser && p.email?.toLowerCase() === currentUser.email?.toLowerCase()));
-        if (found) return found;
+        if (targetId) {
+          const found = store.profiles.find(p => p.id === targetId || (currentUser && p.email?.toLowerCase() === currentUser.email?.toLowerCase()));
+          if (found) return found;
+        }
 
         // If this is an authenticated user but not yet in local profiles list, generate their profile record
-        if (currentUser && (!targetId || targetId === currentUser.id)) {
+        if (currentUser) {
           const newProfile = {
             id: currentUser.id,
             role: currentUser.role || 'owner',
             first_name: currentUser.first_name || 'Pet',
             last_name: currentUser.last_name || 'Owner',
-            full_name: `${currentUser.first_name || 'Pet'} ${currentUser.last_name || 'Owner'}`.trim(),
+            full_name: currentUser.full_name || `${currentUser.first_name || 'Pet'} ${currentUser.last_name || 'Owner'}`.trim(),
             email: currentUser.email || '',
+            username: currentUser.username || currentUser.email,
             phone: '',
             address: '',
             city: '',
@@ -734,12 +965,20 @@
           return newProfile;
         }
 
-        return store.profiles[0];
+        return store.profiles[0] || {
+          id: 'usr_default',
+          role: 'owner',
+          first_name: 'Pet',
+          last_name: 'Owner',
+          full_name: 'Pet Owner',
+          email: '',
+          username: 'owner'
+        };
       },
 
       async update(id, updates) {
         const currentUser = PawCareSupabase.auth.getCurrentUser();
-        const targetId = id || currentUser?.id || '00000000-0000-0000-0000-000000000001';
+        const targetId = id || currentUser?.id || 'usr_default';
 
         if (PawCareSupabase.isConfigured() && targetId) {
           try {
@@ -764,12 +1003,18 @@
         }
         setLocalStore(store);
 
-        // Update active session user if names changed
+        // Update active session user if names or email changed
         const session = PawCareSupabase.auth.getSession();
-        if (session && session.user && session.user.id === targetId) {
+        if (session && session.user) {
           if (updates.first_name) session.user.first_name = updates.first_name;
-          if (updates.last_name) session.user.last_name = updates.last_name;
+          if (updates.last_name !== undefined) session.user.last_name = updates.last_name;
+          const full = `${session.user.first_name || ''} ${session.user.last_name || ''}`.trim();
+          session.user.full_name = full;
+          if (updates.email) session.user.email = updates.email;
           localStorage.setItem('paw_care_session', JSON.stringify(session));
+          localStorage.setItem('pawcare_display_name', full);
+          if (updates.email) localStorage.setItem('pawcare_email', updates.email);
+          if (updates.phone) localStorage.setItem('pawcare_phone', updates.phone);
         }
 
         PawCareSupabase.showToast('Profile saved successfully!', 'success');
@@ -905,7 +1150,7 @@
         const newAppt = {
           id: appointmentData.id || 'a_' + Date.now(),
           owner_id: appointmentData.owner_id || currentUser?.id || '00000000-0000-0000-0000-000000000001',
-          owner_name: appointmentData.owner_name || (currentUser ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim() : 'Rohan Patil'),
+          owner_name: appointmentData.owner_name || (currentUser ? (currentUser.full_name || `${currentUser.first_name} ${currentUser.last_name || ''}`.trim()) : 'Pet Owner'),
           pet_id: appointmentData.pet_id || 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
           pet_name: appointmentData.pet_name || 'Bruno',
           pet_breed: appointmentData.pet_breed || 'Labrador',
@@ -977,7 +1222,7 @@
             id: id,
             status: status,
             pet_name: appt?.pet_name || 'Bruno',
-            owner_name: appt?.owner_name || 'Rohan Patil',
+            owner_name: appt?.owner_name || 'Pet Owner',
             date: appt?.date || 'Fri, 9 Oct 2026',
             time: appt?.time || '10:30 am',
             reason: appt?.reason || 'Consultation'

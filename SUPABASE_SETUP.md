@@ -62,7 +62,7 @@ This guide walks you through connecting **Supabase** for user authentication and
 Paw Care supports two distinct workspaces:
 
 1. **Pet Owner Workspace** (`role: 'owner'`):
-   - Default demo credentials: `rohan.patil@example.com`
+   - Default demo credentials: `owner@example.com`
    - Access to `overview.html`, `pet-profile.html`, `my-profile.html`, `book-appointment.html`, `booking-sent.html`, `health-records.html`, `reminders.html`.
 2. **Veterinarian Workspace** (`role: 'vet'`):
    - Default demo credentials: `anita.rao@companionclinic.com`

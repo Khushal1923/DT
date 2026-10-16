@@ -10,8 +10,8 @@ create extension if not exists "pgcrypto";
 create table if not exists public.profiles (
   id uuid references auth.users on delete cascade primary key,
   role text check (role in ('owner', 'vet')) default 'owner',
-  first_name text not null default 'Rohan',
-  last_name text not null default 'Patil',
+  first_name text not null default 'Pet',
+  last_name text not null default 'Owner',
   full_name text generated always as (first_name || ' ' || last_name) stored,
   email text unique,
   phone text default '+91 98765 43210',
