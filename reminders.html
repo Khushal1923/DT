@@ -118,7 +118,7 @@
       <div class="page-header-row">
         <div>
           <h1 class="page-title">Reminders &amp; notifications</h1>
-          <p class="page-subtitle">Track Bruno’s upcoming care, review due dates, and choose how you want to receive reminders.</p>
+          <p class="page-subtitle">Track Bruno’s upcoming care, review due dates, and manage schedule alerts.</p>
         </div>
       </div>
 
@@ -236,74 +236,34 @@
         </table>
       </div>
 
-      <!-- Bottom 2-Column Grid -->
-      <div class="grid-2col">
-        <!-- Notification preferences -->
-        <div class="card">
-          <h3 class="card-title" style="margin-bottom: 10px;">Notification preferences</h3>
-          <div>
-            <div class="pref-row">
-              <div>
-                <div class="history-title">Email reminders</div>
-                <div class="history-sub">Daily summaries and care updates for Bruno.</div>
-              </div>
-              <div class="toggle-switch on" onclick="this.classList.toggle('on')"></div>
-            </div>
-            <div class="pref-row">
-              <div>
-                <div class="history-title">SMS reminders</div>
-                <div class="history-sub">Urgent care reminders and visit confirmations.</div>
-              </div>
-              <div class="toggle-switch on" onclick="this.classList.toggle('on')"></div>
-            </div>
-            <div class="pref-row">
-              <div>
-                <div class="history-title">Push notifications</div>
-                <div class="history-sub">Instant reminders and care updates on your device.</div>
-              </div>
-              <div class="toggle-switch on" onclick="this.classList.toggle('on')"></div>
-            </div>
-            <div class="pref-row">
-              <div>
-                <div class="history-title">Weekly care digest</div>
-                <div class="history-sub">A weekly summary of upcoming care and due dates.</div>
-              </div>
-              <div class="toggle-switch" onclick="this.classList.toggle('on')"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Reminder timing -->
-        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
-          <div>
-            <h3 class="card-title" style="margin-bottom: 10px;">Reminder timing</h3>
+      <!-- Reminder timing -->
+      <div class="card" style="margin-bottom: 24px;">
+        <h3 class="card-title" style="margin-bottom: 12px;">Reminder timing</h3>
+        <div>
+          <div class="pref-row">
             <div>
-              <div class="pref-row">
-                <div>
-                  <div class="history-title">Medication reminders</div>
-                  <div class="history-sub">Ear drops reminder is set for 7:45 pm.</div>
-                </div>
-                <span style="font-size: 0.75rem; font-weight: 800; color: var(--color-heading);">7:45 pm</span>
-              </div>
-              <div class="pref-row">
-                <div>
-                  <div class="history-title">Appointment reminders</div>
-                  <div class="history-sub">Visit reminders are sent 1 day and 1 hour before.</div>
-                </div>
-                <span style="font-size: 0.75rem; font-weight: 800; color: var(--color-heading);">1 day + 1 hour</span>
-              </div>
-              <div class="pref-row">
-                <div>
-                  <div class="history-title">Vaccination reminders</div>
-                  <div class="history-sub">Booster reminders start 2 days before the due date.</div>
-                </div>
-                <span style="font-size: 0.75rem; font-weight: 800; color: var(--color-heading);">2 days</span>
-              </div>
+              <div class="history-title">Medication reminders</div>
+              <div class="history-sub">Ear drops reminder is set for 7:45 pm.</div>
             </div>
+            <span style="font-size: 0.75rem; font-weight: 800; color: var(--color-heading);">7:45 pm</span>
           </div>
-
-          <button type="button" class="btn btn-outline btn-block" style="margin-top: 14px;">Manage reminder timing</button>
+          <div class="pref-row">
+            <div>
+              <div class="history-title">Appointment reminders</div>
+              <div class="history-sub">Visit reminders are sent 1 day and 1 hour before.</div>
+            </div>
+            <span style="font-size: 0.75rem; font-weight: 800; color: var(--color-heading);">1 day + 1 hour</span>
+          </div>
+          <div class="pref-row">
+            <div>
+              <div class="history-title">Vaccination reminders</div>
+              <div class="history-sub">Booster reminders start 2 days before the due date.</div>
+            </div>
+            <span style="font-size: 0.75rem; font-weight: 800; color: var(--color-heading);">2 days</span>
+          </div>
         </div>
+
+        <button type="button" class="btn btn-outline btn-block" style="margin-top: 14px;">Manage reminder timing</button>
       </div>
 
       <div class="workspace-footer">
