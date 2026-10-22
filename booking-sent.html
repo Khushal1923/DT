@@ -118,7 +118,7 @@
       <div class="page-header-row">
         <div>
           <h1 class="page-title">Booking request sent</h1>
-          <p class="page-subtitle">Your request for Bruno is on its way to Dr. Anita Rao. She’ll accept this time or suggest another slot.</p>
+          <p class="page-subtitle">Your request for <span id="sent-subtitle-pet-name">Bruno</span> is on its way to Dr. Anita Rao. She’ll accept this time or suggest another slot.</p>
         </div>
       </div>
 
@@ -166,21 +166,21 @@
         <div class="card">
           <h2 class="card-title" style="margin-bottom: 14px;">Appointment details</h2>
           <div class="pet-summary-flex" style="padding-bottom: 18px; border-bottom: 1px solid #EFE7DC; margin-bottom: 16px;">
-            <img src="assets/pdf_img_4.jpeg" alt="Bruno" class="pet-avatar-lg" />
+            <img src="assets/pdf_img_4.jpeg" alt="Bruno" id="sent-pet-avatar" class="pet-avatar-lg" />
             <div class="pet-summary-body">
               <div class="pet-summary-top">
-                <h3 class="pet-summary-name">Bruno</h3>
+                <h3 class="pet-summary-name" id="sent-pet-name">Bruno</h3>
                 <span class="badge badge-sand">Your companion</span>
               </div>
-              <div class="pet-summary-meta">Dog · Labrador · 3 years</div>
+              <div class="pet-summary-meta" id="sent-pet-meta">Dog · Labrador · 3 years</div>
               <div class="pet-stats-row">
                 <div>
                   <span class="stat-label">Weight</span>
-                  <span class="stat-value">28.4 kg</span>
+                  <span class="stat-value" id="sent-pet-weight">28.4 kg</span>
                 </div>
                 <div>
                   <span class="stat-label">Last visit</span>
-                  <span class="stat-value">7 Oct 2026</span>
+                  <span class="stat-value" id="sent-pet-last-visit">7 Oct 2026</span>
                 </div>
               </div>
               <div class="pet-action-btns">
@@ -194,23 +194,23 @@
           <div class="form-grid-2" style="row-gap: 14px;">
             <div>
               <span class="stat-label">Veterinarian</span>
-              <a href="vet-profile.html" class="stat-value">Dr. Anita Rao</a>
+              <a href="vet-profile.html" class="stat-value" id="sent-vet-name">Dr. Anita Rao</a>
             </div>
             <div>
               <span class="stat-label">Clinic</span>
-              <span class="stat-value">Companion Animal Clinic</span>
+              <span class="stat-value" id="sent-clinic-name">Companion Animal Clinic</span>
             </div>
             <div>
               <span class="stat-label">Date &amp; time</span>
-              <span class="stat-value">Fri 9 Oct 2026 · 10:30 am</span>
+              <span class="stat-value" id="sent-booking-datetime">Fri 9 Oct 2026 · 10:30 am</span>
             </div>
             <div>
               <span class="stat-label">Reason</span>
-              <span class="stat-value">Rabies booster</span>
+              <span class="stat-value" id="sent-booking-reason">Rabies booster</span>
             </div>
             <div>
               <span class="stat-label">Location</span>
-              <span class="stat-value">Deccan, Pune</span>
+              <span class="stat-value" id="sent-clinic-location">Deccan, Pune</span>
             </div>
             <div>
               <span class="stat-label">Requested by</span>

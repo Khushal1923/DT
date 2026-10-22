@@ -21,6 +21,7 @@
         full_name: 'Pet Owner',
         username: 'owner',
         email: 'owner@example.com',
+        password: 'password123',
         phone: '+91 98765 43210',
         address: '18 Prabhat Road, Deccan Gymkhana',
         city: 'Pune',
@@ -35,6 +36,8 @@
         last_name: 'Rao',
         full_name: 'Dr. Anita Rao',
         email: 'anita.rao@companionclinic.com',
+        username: 'anita',
+        password: 'password123',
         phone: '+91 98220 12345',
         address: 'Companion Animal Clinic, Deccan',
         city: 'Pune',
@@ -288,6 +291,11 @@
               p.full_name = 'Pet Owner';
               p.username = 'owner';
               p.email = 'owner@example.com';
+              p.password = 'password123';
+              modified = true;
+            }
+            if (!p.password) {
+              p.password = 'password123';
               modified = true;
             }
           });
@@ -435,12 +443,24 @@
     auth: {
       async signIn(identifier, password, role = 'owner') {
         identifier = (identifier || '').trim();
+        password = (password || '').trim();
         const lowerIdent = identifier.toLowerCase();
         
+        if (!identifier) {
+          return { success: false, error: 'Please enter your username or email address.' };
+        }
+        if (!password) {
+          return { success: false, error: 'Please enter your password.' };
+        }
+
         // 1. If Supabase is live, attempt Supabase Auth if identifier is an email
         if (PawCareSupabase.isConfigured() && lowerIdent.includes('@')) {
           try {
             const { data, error } = await PawCareSupabase.client.auth.signInWithPassword({ email: lowerIdent, password });
+            if (error) {
+              console.warn('Supabase authentication failed:', error.message);
+              return { success: false, error: error.message || 'Invalid email or password.' };
+            }
             if (!error && data?.user) {
               const user = data.user;
               // fetch profile
@@ -476,11 +496,14 @@
               return { success: true, session: sessionData };
             }
           } catch (e) {
-            console.warn('Supabase auth error, falling back to local database lookup', e);
+            console.warn('Supabase auth network error, checking local store', e);
+            if (e && e.message && !e.message.includes('fetch') && !e.message.includes('network') && !e.message.includes('Failed to fetch')) {
+              return { success: false, error: e.message || 'Invalid login credentials.' };
+            }
           }
         }
 
-        // 2. Local database store lookup / auto-registration
+        // 2. Local database store lookup with real credential validation
         const store = getLocalStore();
         
         // Find existing profile by email, username, or full name
@@ -491,43 +514,33 @@
         );
 
         if (!found) {
-          // Create new user profile dynamically for this username/email
-          let derivedFirst = '';
-          let derivedLast = '';
-          let derivedUsername = identifier;
-          let derivedEmail = lowerIdent.includes('@') ? lowerIdent : `${lowerIdent.toLowerCase()}@pawcare.local`;
-
-          if (lowerIdent.includes('@')) {
-            const localPart = lowerIdent.split('@')[0];
-            const cleanParts = localPart.replace(/[._\-]/g, ' ').split(/\s+/);
-            derivedFirst = cleanParts[0].charAt(0).toUpperCase() + cleanParts[0].slice(1);
-            derivedLast = cleanParts.slice(1).map(c => c.charAt(0).toUpperCase() + c.slice(1)).join(' ');
-            derivedUsername = localPart;
-          } else {
-            derivedFirst = identifier.charAt(0).toUpperCase() + identifier.slice(1);
-            derivedLast = '';
-          }
-
-          found = {
-            id: 'usr_' + Date.now(),
-            role: role,
-            username: derivedUsername,
-            first_name: derivedFirst,
-            last_name: derivedLast,
-            full_name: `${derivedFirst} ${derivedLast}`.trim(),
-            email: derivedEmail,
-            phone: '',
-            address: '',
-            city: '',
-            postal_code: '',
-            member_since: 'October 2026',
-            avatar_url: null
+          return {
+            success: false,
+            error: 'No account found with this username or email. Please check your credentials or click "Create an account" below.'
           };
+        }
 
-          store.profiles.push(found);
+        // Validate Password
+        const storedPassword = found.password || 'password123';
+        if (password !== storedPassword) {
+          return {
+            success: false,
+            error: 'Incorrect password. Please verify your password and try again.'
+          };
+        }
 
-          // Create an associated pet for this new owner so all pet details are editable
-          if (role === 'owner') {
+        // Validate Role match
+        if (role && found.role && found.role !== role) {
+          return {
+            success: false,
+            error: `This account is registered as a ${found.role === 'vet' ? 'Veterinarian' : 'Pet Owner'}. Please switch tabs to log in.`
+          };
+        }
+
+        // Ensure this owner has an associated pet in store
+        if (found.role === 'owner') {
+          const hasPet = store.pets.some(p => p.owner_id === found.id);
+          if (!hasPet) {
             const newPet = {
               id: 'pet_' + Date.now(),
               owner_id: found.id,
@@ -544,32 +557,7 @@
               photo_url: 'assets/pdf_img_4.jpeg'
             };
             store.pets.unshift(newPet);
-          }
-
-          setLocalStore(store);
-        } else {
-          // Ensure this owner has an associated pet in store
-          if (role === 'owner') {
-            const hasPet = store.pets.some(p => p.owner_id === found.id);
-            if (!hasPet) {
-              const newPet = {
-                id: 'pet_' + Date.now(),
-                owner_id: found.id,
-                name: 'Bruno',
-                species: 'Dog',
-                breed: 'Labrador',
-                age: '3 years',
-                weight: 28.4,
-                weight_measured_at: 'Today',
-                sex: 'Male · Neutered',
-                microchip: 'Not added',
-                allergies: 'None reported',
-                past_illness: 'None',
-                photo_url: 'assets/pdf_img_4.jpeg'
-              };
-              store.pets.unshift(newPet);
-              setLocalStore(store);
-            }
+            setLocalStore(store);
           }
         }
 
@@ -598,12 +586,33 @@
 
       async signUp(identifier, password, role = 'owner', profileData = {}) {
         identifier = (identifier || '').trim();
+        password = (password || '').trim();
         const lowerIdent = identifier.toLowerCase();
         const fullName = profileData.full_name || `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim();
         const parts = fullName ? fullName.split(/\s+/) : [];
         const firstName = profileData.first_name || parts[0] || identifier.charAt(0).toUpperCase() + identifier.slice(1);
         const lastName = profileData.last_name !== undefined ? profileData.last_name : parts.slice(1).join(' ');
         const finalFullName = `${firstName} ${lastName}`.trim();
+
+        if (!identifier) {
+          return { success: false, error: 'Please enter a username or email.' };
+        }
+        if (!password || password.length < 6) {
+          return { success: false, error: 'Password must be at least 6 characters long.' };
+        }
+
+        const store = getLocalStore();
+        let existing = store.profiles.find(p => 
+          (p.email && p.email.toLowerCase() === lowerIdent) ||
+          (p.username && p.username.toLowerCase() === lowerIdent)
+        );
+
+        if (existing) {
+          return {
+            success: false,
+            error: 'An account with this username or email already exists. Please sign in instead.'
+          };
+        }
 
         if (PawCareSupabase.isConfigured() && lowerIdent.includes('@')) {
           try {
@@ -620,7 +629,10 @@
                 }
               }
             });
-            if (error) throw error;
+            if (error) {
+              console.warn('Supabase sign up error:', error.message);
+              return { success: false, error: error.message };
+            }
 
             if (data?.user) {
               await PawCareSupabase.client.from('profiles').upsert({
@@ -659,20 +671,15 @@
         }
 
         // Local store registration
-        const store = getLocalStore();
-        let existing = store.profiles.find(p => 
-          (p.email && p.email.toLowerCase() === lowerIdent) ||
-          (p.username && p.username.toLowerCase() === lowerIdent)
-        );
-
-        const newProfile = existing || {
+        const newProfile = {
           id: 'usr_' + Date.now(),
           role: role,
           username: identifier,
+          password: password,
           first_name: firstName,
           last_name: lastName,
           full_name: finalFullName,
-          email: lowerIdent.includes('@') ? lowerIdent : `${lowerIdent.toLowerCase()}@pawcare.local`,
+          email: lowerIdent.includes('@') ? lowerIdent : `${lowerIdent}@pawcare.local`,
           phone: '',
           address: '',
           city: '',
@@ -681,30 +688,24 @@
           avatar_url: null
         };
 
-        if (existing) {
-          existing.first_name = firstName;
-          existing.last_name = lastName;
-          existing.full_name = finalFullName;
-        } else {
-          store.profiles.push(newProfile);
-          if (role === 'owner') {
-            const newPet = {
-              id: 'pet_' + Date.now(),
-              owner_id: newProfile.id,
-              name: 'Bruno',
-              species: 'Dog',
-              breed: 'Labrador',
-              age: '3 years',
-              weight: 28.4,
-              weight_measured_at: 'Today',
-              sex: 'Male · Neutered',
-              microchip: 'Not added',
-              allergies: 'None reported',
-              past_illness: 'None',
-              photo_url: 'assets/pdf_img_4.jpeg'
-            };
-            store.pets.unshift(newPet);
-          }
+        store.profiles.push(newProfile);
+        if (role === 'owner') {
+          const newPet = {
+            id: 'pet_' + Date.now(),
+            owner_id: newProfile.id,
+            name: 'Bruno',
+            species: 'Dog',
+            breed: 'Labrador',
+            age: '3 years',
+            weight: 28.4,
+            weight_measured_at: 'Today',
+            sex: 'Male · Neutered',
+            microchip: 'Not added',
+            allergies: 'None reported',
+            past_illness: 'None',
+            photo_url: 'assets/pdf_img_4.jpeg'
+          };
+          store.pets.unshift(newPet);
         }
         setLocalStore(store);
 
@@ -1135,6 +1136,7 @@
           try {
             let query = PawCareSupabase.client.from('appointments').select('*').order('created_at', { ascending: false });
             if (filters.status) query = query.eq('status', filters.status);
+            if (filters.owner_id) query = query.eq('owner_id', filters.owner_id);
             const { data, error } = await query;
             if (!error && data && data.length > 0) return data;
           } catch (e) {
@@ -1142,7 +1144,14 @@
           }
         }
         const store = getLocalStore();
-        return store.appointments;
+        let list = store.appointments || [];
+        if (filters.owner_id) {
+          list = list.filter(a => a.owner_id === filters.owner_id || !a.owner_id || a.owner_id === '00000000-0000-0000-0000-000000000001');
+        }
+        if (filters.status) {
+          list = list.filter(a => a.status === filters.status);
+        }
+        return list;
       },
 
       async create(appointmentData) {
@@ -1183,6 +1192,9 @@
         const store = getLocalStore();
         store.appointments.unshift(newAppt);
         setLocalStore(store);
+
+        // Stash the latest appointment in localStorage for immediate hydration
+        localStorage.setItem('pawcare_last_appointment', JSON.stringify(newAppt));
 
         // Broadcast appointment creation via Socket.io / BroadcastChannel
         if (window.PawCareRealtime) {

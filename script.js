@@ -132,7 +132,10 @@ function toggleAuthMode() {
 }
 
 async function handleAuthSubmit(e) {
-  if (e) e.preventDefault();
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
   const emailInput = document.getElementById('signin-email');
   const passInput = document.getElementById('signin-password');
   const nameInput = document.getElementById('signin-name');
@@ -143,14 +146,17 @@ async function handleAuthSubmit(e) {
   const password = passInput ? passInput.value.trim() : '';
   const fullName = nameInput ? nameInput.value.trim() : '';
 
-  if (errorBox) errorBox.style.display = 'none';
+  if (errorBox) {
+    errorBox.style.display = 'none';
+    errorBox.innerHTML = '';
+  }
 
   if (!email) {
     if (errorBox) {
       errorBox.style.display = 'block';
       errorBox.style.backgroundColor = '#FDF2E9';
       errorBox.style.color = '#7C4A1E';
-      errorBox.textContent = 'Please enter an email address.';
+      errorBox.textContent = 'Please enter your username or email address.';
     }
     return;
   }
@@ -160,19 +166,30 @@ async function handleAuthSubmit(e) {
       errorBox.style.display = 'block';
       errorBox.style.backgroundColor = '#FDF2E9';
       errorBox.style.color = '#7C4A1E';
-      errorBox.textContent = 'Please enter a password.';
+      errorBox.textContent = 'Please enter your password.';
     }
     return;
   }
 
-  if (authMode === 'signup' && password.length < 6) {
-    if (errorBox) {
-      errorBox.style.display = 'block';
-      errorBox.style.backgroundColor = '#FDF2E9';
-      errorBox.style.color = '#7C4A1E';
-      errorBox.textContent = 'Password must be at least 6 characters long.';
+  if (authMode === 'signup') {
+    if (!fullName) {
+      if (errorBox) {
+        errorBox.style.display = 'block';
+        errorBox.style.backgroundColor = '#FDF2E9';
+        errorBox.style.color = '#7C4A1E';
+        errorBox.textContent = 'Please enter your full name.';
+      }
+      return;
     }
-    return;
+    if (password.length < 6) {
+      if (errorBox) {
+        errorBox.style.display = 'block';
+        errorBox.style.backgroundColor = '#FDF2E9';
+        errorBox.style.color = '#7C4A1E';
+        errorBox.textContent = 'Password must be at least 6 characters long.';
+      }
+      return;
+    }
   }
 
   if (submitBtn) submitBtn.disabled = true;
@@ -189,18 +206,26 @@ async function handleAuthSubmit(e) {
         full_name: fullName.trim()
       });
 
-      if (res && res.requiresEmailConfirmation) {
-        if (errorBox) {
-          errorBox.style.display = 'block';
-          errorBox.style.backgroundColor = '#EBF5EB';
-          errorBox.style.color = '#1E5E22';
-          errorBox.innerHTML = `✓ Account created in Supabase! If confirmation is required, check <strong>${email}</strong>, or sign in now.`;
+      if (res && res.success) {
+        if (res.requiresEmailConfirmation) {
+          if (errorBox) {
+            errorBox.style.display = 'block';
+            errorBox.style.backgroundColor = '#EBF5EB';
+            errorBox.style.color = '#1E5E22';
+            errorBox.innerHTML = `✓ Account created! If confirmation is required, check <strong>${email}</strong>, or sign in now.`;
+          }
+        } else {
+          setTimeout(() => {
+            window.location.href = currentSignInRole === 'vet' ? 'vet-profile.html?setup=1' : 'overview.html';
+          }, 400);
         }
       } else {
-        setTimeout(() => {
-          // Go to dashboard so user immediately sees their name
-          window.location.href = currentSignInRole === 'vet' ? 'vet-profile.html?setup=1' : 'overview.html';
-        }, 500);
+        if (errorBox) {
+          errorBox.style.display = 'block';
+          errorBox.style.backgroundColor = '#FDF2E9';
+          errorBox.style.color = '#7C4A1E';
+          errorBox.textContent = res?.error || 'Could not create account. Please try again.';
+        }
       }
     } else {
       // Sign in mode
@@ -208,13 +233,13 @@ async function handleAuthSubmit(e) {
       if (res && res.success) {
         setTimeout(() => {
           window.location.href = currentSignInRole === 'vet' ? 'vet-overview.html' : 'overview.html';
-        }, 500);
-      } else if (res && res.error) {
+        }, 400);
+      } else {
         if (errorBox) {
           errorBox.style.display = 'block';
-          errorBox.style.backgroundColor = '#FEF3C7';
-          errorBox.style.color = '#92400E';
-          errorBox.innerHTML = `Supabase Auth Notice: <strong>${res.error}</strong>.<br><br>Haven't created an account with this email in your new Supabase project yet? <a href="javascript:void(0)" onclick="toggleAuthMode()" style="text-decoration: underline; font-weight: 800; color: #78350F;">Click here to Create Account</a> with this email, or sign in with Demo Mode.`;
+          errorBox.style.backgroundColor = '#FDF2E9';
+          errorBox.style.color = '#7C4A1E';
+          errorBox.innerHTML = res?.error || 'Invalid credentials. Please verify your username/email and password.';
         }
       }
     }
@@ -233,6 +258,129 @@ async function handleAuthSubmit(e) {
 // Backwards-compatible alias
 const handleSignIn = handleAuthSubmit;
 
+// ==========================================================================
+// CALENDAR & DATE TIME SYNCHRONIZATION HELPERS
+// ==========================================================================
+
+function formatCalendarDate(dateStr) {
+  let d;
+  if (!dateStr) {
+    d = new Date();
+  } else if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    const parts = dateStr.split('-').map(Number);
+    d = new Date(parts[0], parts[1] - 1, parts[2]);
+  } else {
+    d = new Date(dateStr);
+  }
+  if (isNaN(d.getTime())) d = new Date();
+
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const fullDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const fullMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+  const dayOfWeek = days[d.getDay()];
+  const fullDayOfWeek = fullDays[d.getDay()];
+  const dayNum = d.getDate();
+  const monthStr = months[d.getMonth()];
+  const fullMonthStr = fullMonths[d.getMonth()];
+  const year = d.getFullYear();
+
+  return {
+    iso: `${year}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`,
+    short: `${dayOfWeek}, ${dayNum} ${monthStr}`, // "Fri, 24 Oct"
+    standard: `${dayOfWeek}, ${dayNum} ${monthStr} ${year}`, // "Fri, 24 Oct 2026"
+    full: `${fullDayOfWeek}, ${dayNum} ${fullMonthStr} ${year}`, // "Friday, 24 October 2026"
+    dayMonth: `${dayNum} ${monthStr} ${year}` // "24 Oct 2026"
+  };
+}
+
+function initBookingCalendar() {
+  const dateInput = document.getElementById('booking-date-input');
+  if (!dateInput) return;
+
+  const today = new Date();
+  const todayFormatted = formatCalendarDate(today);
+
+  // Don't allow past dates for booking
+  dateInput.min = todayFormatted.iso;
+  if (!dateInput.value) {
+    dateInput.value = todayFormatted.iso;
+  }
+  handleBookingDateChange(dateInput.value);
+}
+
+function handleBookingDateChange(dateVal) {
+  const dateInput = document.getElementById('booking-date-input');
+  const val = dateVal || (dateInput ? dateInput.value : '');
+  const formatted = formatCalendarDate(val);
+
+  // 1. Update calendar selected label
+  const dateDisplay = document.getElementById('booking-date-display');
+  if (dateDisplay) {
+    dateDisplay.innerHTML = `📅 Selected: <strong>${formatted.full}</strong>`;
+  }
+
+  // 2. Update Available slots header
+  const slotsTitle = document.getElementById('slots-date-title');
+  if (slotsTitle) {
+    slotsTitle.textContent = `Available slots for ${formatted.standard}`;
+  }
+
+  // 3. Keep hidden select option updated for backwards compatibility
+  const dateSelect = document.getElementById('booking-date-select');
+  if (dateSelect) {
+    if (dateSelect.options.length > 0) {
+      dateSelect.options[0].value = formatted.standard;
+      dateSelect.options[0].textContent = formatted.standard;
+      dateSelect.selectedIndex = 0;
+    }
+  }
+
+  // 4. Resolve current slot time
+  const timeSelect = document.getElementById('booking-time-select');
+  const activeSlot = document.querySelector('.slot-btn.active');
+  const slotTime = timeSelect && timeSelect.value ? timeSelect.value : (activeSlot ? activeSlot.textContent.trim() : '10:30 am');
+
+  // 5. Update Stepper Step 3
+  const stepVal = document.getElementById('step-time-val');
+  if (stepVal) {
+    stepVal.textContent = `${formatted.short} · ${slotTime}`;
+  }
+
+  // 6. Update Summary card
+  const summaryVal = document.getElementById('summary-time-val');
+  if (summaryVal) {
+    summaryVal.textContent = `${formatted.standard} · ${slotTime}`;
+  }
+}
+
+function handleBookingTimeChange(timeVal) {
+  document.querySelectorAll('.slot-btn').forEach(btn => {
+    if (btn.textContent.trim() === timeVal) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
+  const dateInput = document.getElementById('booking-date-input');
+  const formatted = formatCalendarDate(dateInput ? dateInput.value : '');
+
+  const stepVal = document.getElementById('step-time-val');
+  if (stepVal) stepVal.textContent = `${formatted.short} · ${timeVal}`;
+
+  const summaryVal = document.getElementById('summary-time-val');
+  if (summaryVal) summaryVal.textContent = `${formatted.standard} · ${timeVal}`;
+}
+
+function handleBookingReasonChange(reasonVal) {
+  const summaryReason = document.getElementById('summary-reason-val');
+  if (summaryReason) {
+    summaryReason.textContent = reasonVal.trim() || 'Check-up';
+  }
+}
+
 function selectSlot(btn, slotTime) {
   document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -240,21 +388,108 @@ function selectSlot(btn, slotTime) {
   const timeSelect = document.getElementById('booking-time-select');
   if (timeSelect) timeSelect.value = slotTime;
 
+  const dateInput = document.getElementById('booking-date-input');
+  const dateVal = dateInput && dateInput.value ? dateInput.value : '';
+  const formatted = formatCalendarDate(dateVal);
+
   const stepVal = document.getElementById('step-time-val');
-  if (stepVal) stepVal.textContent = 'Fri, 9 Oct · ' + slotTime;
+  if (stepVal) stepVal.textContent = `${formatted.short} · ${slotTime}`;
 
   const summaryVal = document.getElementById('summary-time-val');
-  if (summaryVal) summaryVal.textContent = 'Fri, 9 Oct 2026 · ' + slotTime;
+  if (summaryVal) summaryVal.textContent = `${formatted.standard} · ${slotTime}`;
 }
 
-async function acceptRequest(cardId, apptId = 'a1111111-1111-1111-1111-111111111111') {
+function initWeekScheduleDates() {
+  const weekTabs = document.getElementById('week-tabs');
+  const weekBreadcrumb = document.getElementById('week-breadcrumb') || document.querySelector('.page-breadcrumb');
+  const weekSubtitle = document.getElementById('week-subtitle');
+  const weekRangeText = document.getElementById('week-range-text');
+  const weekBadge = document.getElementById('week-badge');
+
+  if (!weekTabs && !weekBreadcrumb) return;
+
+  const today = new Date();
+  const currentDayOfWeek = today.getDay(); // 0 is Sun, 1 is Mon...
+  const isoDay = currentDayOfWeek === 0 ? 6 : currentDayOfWeek - 1;
+
+  // Monday of current week
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - isoDay);
+
+  // Sunday of current week
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+
+  // Approximate week number of the year
+  const firstJan = new Date(today.getFullYear(), 0, 1);
+  const pastDaysOfYear = (today - firstJan) / 86400000;
+  const weekNumber = Math.ceil((pastDaysOfYear + firstJan.getDay() + 1) / 7);
+
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const daysShort = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  // Breadcrumb
+  if (weekBreadcrumb && (window.location.pathname.includes('vet-schedule') || window.location.pathname.includes('vet-week-schedule'))) {
+    const todayFull = formatCalendarDate(today).full;
+    weekBreadcrumb.textContent = `${todayFull} · Week ${weekNumber}`;
+  }
+
+  // Header Subtitle & Range Text
+  const monStr = `${monday.getDate()} ${months[monday.getMonth()]}`;
+  const sunStr = `${sunday.getDate()} ${months[sunday.getMonth()]} ${sunday.getFullYear()}`;
+  if (weekSubtitle) {
+    weekSubtitle.textContent = `Schedule for the whole week across all days (${monStr} – ${sunStr}).`;
+  }
+  if (weekRangeText) {
+    weekRangeText.textContent = `Monday, ${monStr} – Sunday, ${sunStr} · 18 total visits scheduled`;
+  }
+  if (weekBadge) {
+    weekBadge.textContent = `Week ${weekNumber}`;
+  }
+
+  // Update day selector tabs
+  if (weekTabs) {
+    const tabButtons = weekTabs.querySelectorAll('.schedule-day-tab');
+    for (let i = 0; i < 7; i++) {
+      const tabBtn = tabButtons[i + 1];
+      if (!tabBtn) continue;
+      const dayDate = new Date(monday);
+      dayDate.setDate(monday.getDate() + i);
+
+      const dayNameSpan = tabBtn.querySelector('.schedule-day-name');
+      const dayDateSpan = tabBtn.querySelector('.schedule-day-date');
+
+      if (dayDateSpan) {
+        dayDateSpan.textContent = `${dayDate.getDate()} ${months[dayDate.getMonth()]}`;
+      }
+
+      if (i === isoDay) {
+        if (dayNameSpan) {
+          dayNameSpan.textContent = 'Today';
+          dayNameSpan.style.color = 'var(--color-primary)';
+          dayNameSpan.style.fontWeight = '800';
+        }
+        tabBtn.style.borderColor = 'var(--color-primary)';
+      } else {
+        if (dayNameSpan) {
+          dayNameSpan.textContent = daysShort[i];
+          dayNameSpan.style.color = '';
+          dayNameSpan.style.fontWeight = '';
+        }
+        tabBtn.style.borderColor = '';
+      }
+    }
+  }
+}
+
+async function acceptRequest(cardId, apptId = 'a1111111-1111-1111-1111-111111111111', dateStr = 'Fri, 9 Oct 2026', timeStr = '10:30 am') {
   const card = document.getElementById(cardId) || document.getElementById('req-card-1');
   const countSpan = document.getElementById('pending-count');
 
   if (card) {
     const actions = card.querySelector('#request-actions') || card.querySelector('div:last-child');
     if (actions) {
-      actions.innerHTML = '<span class="badge badge-verified">Accepted · Confirmed for Fri, 9 Oct · 10:30 am</span>';
+      actions.innerHTML = `<span class="badge badge-verified">Accepted · Confirmed for ${dateStr} · ${timeStr}</span>`;
     }
     const badge = card.querySelector('.badge-pending');
     if (badge) {
@@ -282,9 +517,9 @@ async function acceptRequest(cardId, apptId = 'a1111111-1111-1111-1111-111111111
       status: 'confirmed',
       pet_name: 'Bruno',
       owner_name: 'Pet Owner',
-      date: 'Fri, 9 Oct 2026',
-      time: '10:30 am',
-      reason: 'Rabies booster'
+      date: dateStr,
+      time: timeStr,
+      reason: 'Visit'
     });
   }
 }
@@ -457,9 +692,16 @@ async function saveVetProfile(e) {
 // Submit Booking Request to Supabase & Real-Time Broadcast
 async function submitBookingRequest(e) {
   if (e) e.preventDefault();
-  const dateEl = document.getElementById('booking-date-select');
+  const dateInput = document.getElementById('booking-date-input');
+  const dateSelect = document.getElementById('booking-date-select');
   const timeEl = document.getElementById('booking-time-select');
   const reasonEl = document.getElementById('booking-reason-input');
+
+  const rawDate = (dateInput && dateInput.value) ? dateInput.value : (dateSelect ? dateSelect.value : '');
+  const formatted = formatCalendarDate(rawDate);
+  const chosenDate = formatted.standard;
+  const chosenTime = timeEl ? timeEl.value : '10:30 am';
+  const chosenReason = reasonEl && reasonEl.value.trim() ? reasonEl.value.trim() : 'Rabies booster';
 
   const user = window.PawCareSupabase ? window.PawCareSupabase.auth.getCurrentUser() : null;
   let pet = null;
@@ -478,11 +720,14 @@ async function submitBookingRequest(e) {
     vet_name: 'Dr. Anita Rao',
     clinic_name: 'Companion Animal Clinic',
     location: 'Deccan, Pune',
-    date: dateEl ? dateEl.value : 'Fri, 9 Oct 2026',
-    time: timeEl ? timeEl.value : '10:30 am',
-    reason: reasonEl ? reasonEl.value : 'Rabies booster',
+    date: chosenDate,
+    time: chosenTime,
+    reason: chosenReason,
     status: 'pending'
   };
+
+  // Stash in localStorage for immediate hydration across pages
+  localStorage.setItem('pawcare_last_appointment', JSON.stringify(appointmentData));
 
   if (window.PawCareSupabase) {
     await window.PawCareSupabase.appointments.create(appointmentData);
@@ -490,7 +735,7 @@ async function submitBookingRequest(e) {
 
   setTimeout(() => {
     window.location.href = 'booking-sent.html';
-  }, 500);
+  }, 400);
 }
 
 // Save Consultation Record to Supabase
@@ -921,6 +1166,178 @@ async function hydrateWorkspaceData() {
       this.classList.add('active');
     };
   });
+
+  // 8. Hydrate Dynamic Calendar & Appointments Data Across All Pages
+  try {
+    // A. If on book-appointment page, initialize calendar date picker
+    if (document.getElementById('booking-date-input')) {
+      initBookingCalendar();
+      if (pet) {
+        const stepPet = document.getElementById('step-pet-val');
+        if (stepPet) stepPet.textContent = pet.name;
+        const sumPetName = document.getElementById('summary-pet-name');
+        if (sumPetName) sumPetName.textContent = pet.name;
+        const sumPetMeta = document.getElementById('summary-pet-meta');
+        if (sumPetMeta) sumPetMeta.textContent = `${pet.breed || 'Labrador'} · ${pet.age || '3 years'}`;
+      }
+    }
+
+    // B. If on booking-sent page, hydrate with newly created appointment
+    if (document.getElementById('sent-booking-datetime')) {
+      let lastAppt = null;
+      try {
+        const saved = localStorage.getItem('pawcare_last_appointment');
+        if (saved) lastAppt = JSON.parse(saved);
+      } catch (e) {}
+
+      if (!lastAppt && window.PawCareSupabase) {
+        const appts = await window.PawCareSupabase.appointments.list({ owner_id: user?.id });
+        if (appts && appts.length > 0) lastAppt = appts[0];
+      }
+
+      if (lastAppt) {
+        const dtEl = document.getElementById('sent-booking-datetime');
+        if (dtEl) dtEl.textContent = `${lastAppt.date} · ${lastAppt.time}`;
+        const reasonEl = document.getElementById('sent-booking-reason');
+        if (reasonEl) reasonEl.textContent = lastAppt.reason || 'Check-up';
+        const subName = document.getElementById('sent-subtitle-pet-name');
+        if (subName) subName.textContent = lastAppt.pet_name || (pet ? pet.name : 'Bruno');
+        const petNameEl = document.getElementById('sent-pet-name');
+        if (petNameEl) petNameEl.textContent = lastAppt.pet_name || (pet ? pet.name : 'Bruno');
+        const petMetaEl = document.getElementById('sent-pet-meta');
+        if (petMetaEl) petMetaEl.textContent = lastAppt.pet_breed || (pet ? `${pet.species} · ${pet.breed} · ${pet.age}` : 'Dog · Labrador · 3 years');
+        const vetNameEl = document.getElementById('sent-vet-name');
+        if (vetNameEl) vetNameEl.textContent = lastAppt.vet_name || 'Dr. Anita Rao';
+        const clinicNameEl = document.getElementById('sent-clinic-name');
+        if (clinicNameEl) clinicNameEl.textContent = lastAppt.clinic_name || 'Companion Animal Clinic';
+        const clinicLocEl = document.getElementById('sent-clinic-location');
+        if (clinicLocEl) clinicLocEl.textContent = lastAppt.location || 'Deccan, Pune';
+        const ownerEl = document.getElementById('summary-owner-name');
+        if (ownerEl && lastAppt.owner_name) ownerEl.textContent = lastAppt.owner_name;
+      }
+    }
+
+    // C. Hydrate Overview & Reminders dynamic appointments table and sand card
+    const upcomingTbody = document.getElementById('upcoming-appts-tbody');
+    const remindersTbody = document.getElementById('reminders-appts-tbody');
+    const overviewPendingCard = document.getElementById('overview-pending-alert-card');
+    const remindersPendingCard = document.getElementById('reminders-pending-alert-card');
+
+    if (upcomingTbody || remindersTbody || overviewPendingCard || remindersPendingCard) {
+      let appts = [];
+      if (window.PawCareSupabase) {
+        appts = await window.PawCareSupabase.appointments.list({ owner_id: user?.id });
+      }
+
+      try {
+        const lastRaw = localStorage.getItem('pawcare_last_appointment');
+        if (lastRaw) {
+          const lastObj = JSON.parse(lastRaw);
+          if (lastObj && !appts.some(a => a.id === lastObj.id)) {
+            appts.unshift(lastObj);
+          }
+        }
+      } catch (e) {}
+
+      if (appts && appts.length > 0) {
+        const rowsHtml = appts.map((a, idx) => {
+          const isConfirmed = a.status === 'confirmed';
+          const badgeClass = isConfirmed ? 'badge-verified' : 'badge-pending';
+          const statusText = isConfirmed ? 'Confirmed' : 'Awaiting acceptance';
+          const linkUrl = isConfirmed ? 'health-records.html' : 'booking-sent.html';
+          const linkText = isConfirmed ? 'View visit' : 'View request';
+          return `
+            <tr id="upcoming-appt-row-${idx + 1}" data-appointment-id="${a.id}">
+              <td>
+                <span class="td-bold">${a.date}</span>
+                <span class="td-sub">${a.time}</span>
+              </td>
+              <td>
+                <a href="vet-profile.html" class="td-bold">${a.vet_name || 'Dr. Anita Rao'}</a>
+                <span class="td-sub">${a.clinic_name || 'Companion Animal Clinic'}</span>
+              </td>
+              <td>${a.reason || 'Routine Checkup'}</td>
+              <td class="appt-status-cell"><span class="badge ${badgeClass}">${statusText}</span></td>
+              <td style="text-align: right;"><a href="${linkUrl}" class="card-link">${linkText}</a></td>
+            </tr>
+          `;
+        }).join('');
+
+        if (upcomingTbody) upcomingTbody.innerHTML = rowsHtml;
+        if (remindersTbody) remindersTbody.innerHTML = rowsHtml;
+
+        const latestAppt = appts.find(a => a.status === 'pending') || appts[0];
+        if (latestAppt) {
+          const isPend = latestAppt.status === 'pending';
+          const badgeClass = isPend ? 'badge-pending' : 'badge-verified';
+          const badgeText = isPend ? `Awaiting acceptance · ${latestAppt.date}` : `Confirmed · ${latestAppt.date}`;
+          const bodyText = `Scheduled for <strong>${latestAppt.date} · ${latestAppt.time}</strong>. Your request for ${latestAppt.pet_name || 'your pet'} is ${isPend ? "awaiting Dr. Anita Rao's acceptance." : "confirmed with Dr. Anita Rao."}`;
+
+          if (document.getElementById('overview-pending-title')) {
+            document.getElementById('overview-pending-title').textContent = latestAppt.reason || 'Visit';
+          }
+          if (document.getElementById('overview-pending-badge')) {
+            const ob = document.getElementById('overview-pending-badge');
+            ob.className = `badge ${badgeClass}`;
+            ob.textContent = badgeText;
+          }
+          if (document.getElementById('overview-pending-text')) {
+            document.getElementById('overview-pending-text').innerHTML = bodyText;
+          }
+
+          if (document.getElementById('reminders-pending-title')) {
+            document.getElementById('reminders-pending-title').textContent = latestAppt.reason || 'Visit';
+          }
+          if (document.getElementById('reminders-pending-badge')) {
+            const rb = document.getElementById('reminders-pending-badge');
+            rb.className = `badge ${badgeClass}`;
+            rb.textContent = badgeText;
+          }
+          if (document.getElementById('reminders-pending-text')) {
+            document.getElementById('reminders-pending-text').innerHTML = bodyText;
+          }
+        }
+      }
+    }
+
+    // D. Hydrate Veterinarian Pending Requests on vet-requests-availability.html
+    const pendingListContainer = document.getElementById('pending-requests-list');
+    if (pendingListContainer && window.PawCareSupabase) {
+      const pendingAppts = await window.PawCareSupabase.appointments.list({ status: 'pending' });
+      if (pendingAppts && pendingAppts.length > 0) {
+        pendingListContainer.innerHTML = pendingAppts.map((a, idx) => `
+          <div class="card-sand" style="margin-bottom: 14px;" id="req-card-${idx + 1}">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 4px;">
+              <div style="font-size: 0.88rem; font-weight: 800; color: var(--color-heading);">${a.pet_name} · ${a.pet_breed || 'Companion'}</div>
+              <span class="badge badge-pending">Pending</span>
+            </div>
+            <div style="font-size: 0.74rem; color: var(--color-muted); margin-bottom: 2px;">Owner: ${a.owner_name}</div>
+            <div style="font-size: 0.75rem; color: var(--color-body); margin-bottom: 12px; font-weight: 600;">
+              ${a.reason} · ${a.date} · ${a.time}
+            </div>
+            <div style="display: flex; gap: 8px;" id="request-actions-${idx + 1}">
+              <button type="button" class="btn btn-primary btn-sm" onclick="acceptRequest('req-card-${idx + 1}', '${a.id}', '${a.date}', '${a.time}')">Accept</button>
+              <button type="button" class="btn btn-outline btn-sm" style="background-color: #FFFFFF;" onclick="alert('Reschedule notification sent to ${a.owner_name}.')">Reschedule</button>
+            </div>
+          </div>
+        `).join('');
+        const pCount = document.getElementById('pending-count');
+        if (pCount) pCount.textContent = `${pendingAppts.length} request${pendingAppts.length === 1 ? '' : 's'}`;
+      }
+    }
+
+    // E. Hydrate Vet Overview Date Subtitle
+    const vetDateSub = document.getElementById('vet-today-date-sub');
+    if (vetDateSub) {
+      const todayFull = formatCalendarDate(new Date()).full;
+      vetDateSub.textContent = `${todayFull} · Companion Animal Clinic`;
+    }
+
+    // F. Hydrate Dynamic Week Schedule Dates
+    initWeekScheduleDates();
+  } catch (err) {
+    console.warn('Error hydrating dynamic appointments and calendar dates:', err);
+  }
 }
 
 // Seamless Client-Side Navigation for Workspace Pages

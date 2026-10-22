@@ -84,7 +84,7 @@
         </div>
 
         <!-- Sign-in / Sign-up Form -->
-        <form id="signin-form" action="overview.html" onsubmit="handleAuthSubmit(event)">
+        <form id="signin-form" action="javascript:void(0)" onsubmit="handleAuthSubmit(event)">
           <div class="form-group" id="signup-name-group" style="display: none;">
             <label class="form-label" for="signin-name">Full name</label>
             <input type="text" id="signin-name" class="form-control" placeholder="e.g. Alex Morgan or your full name" />
@@ -127,6 +127,14 @@
           <div class="signin-vet-note" id="auth-footnote">
             Veterinarians use their registered clinic email.
           </div>
+
+          <!-- Demo Accounts Guide -->
+          <div style="background-color: #FAF5EC; border: 1px solid #EAE0D2; border-radius: 4px; padding: 10px 12px; margin-top: 14px; font-size: 0.72rem; color: #5C4332;">
+            <div style="font-weight: 700; margin-bottom: 2px;">Demo login credentials:</div>
+            <div>• <strong>Pet Owner:</strong> owner@example.com (pass: password123)</div>
+            <div>• <strong>Veterinarian:</strong> anita.rao@companionclinic.com (pass: password123)</div>
+            <div style="margin-top: 2px; color: var(--color-muted);">Or click "Create an account" to register with your own username and password.</div>
+          </div>
         </form>
       </div>
 
@@ -155,38 +163,12 @@
         var emailInput = document.getElementById('signin-email');
         if (emailInput) {
           emailInput.placeholder = role === 'vet'
-            ? 'e.g. dr.name@yourclinic.com'
-            : 'e.g. you@example.com';
+            ? 'e.g. anita.rao@companionclinic.com'
+            : 'e.g. you@example.com or username';
         }
         if (_orig) _orig(role);
       };
     })(window.switchRole);
-
-    /* On form submit, stash name field (for sign-up) or derive display name from email */
-    var form = document.getElementById('signin-form');
-    if (form) {
-      form.addEventListener('submit', function () {
-        var nameInput  = document.getElementById('signin-name');
-        var emailInput = document.getElementById('signin-email');
-        var name = '';
-
-        if (nameInput && nameInput.value.trim()) {
-          name = nameInput.value.trim();
-        } else if (emailInput && emailInput.value.trim()) {
-          /* Derive a friendly name from the email local-part */
-          var local = emailInput.value.trim().split('@')[0];
-          name = local
-            .replace(/[._\-]/g, ' ')
-            .replace(/\b\w/g, function(c) { return c.toUpperCase(); });
-        }
-
-        if (name) localStorage.setItem('pawcare_display_name', name);
-        if (emailInput && emailInput.value.trim()) {
-          localStorage.setItem('pawcare_email', emailInput.value.trim());
-        }
-        localStorage.setItem('pawcare_role', currentRole);
-      });
-    }
   })();
   </script>
 </body>

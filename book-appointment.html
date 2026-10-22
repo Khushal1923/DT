@@ -174,16 +174,16 @@
             <h3 class="card-title" style="margin-bottom: 14px;">Date &amp; time</h3>
             <div class="form-grid-2">
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label">Date</label>
-                <select class="form-control" id="booking-date-select">
-                  <option selected>Fri, 9 Oct 2026</option>
-                  <option>Sat, 10 Oct 2026</option>
-                  <option>Mon, 12 Oct 2026</option>
+                <label class="form-label" for="booking-date-input">Select Date (Calendar)</label>
+                <input type="date" class="form-control" id="booking-date-input" onchange="handleBookingDateChange(this.value)" />
+                <div id="booking-date-display" style="font-size: 0.76rem; color: var(--color-primary); font-weight: 700; margin-top: 5px;"></div>
+                <select class="form-control" id="booking-date-select" style="display: none;">
+                  <option selected></option>
                 </select>
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label">Time</label>
-                <select class="form-control" id="booking-time-select">
+                <label class="form-label" for="booking-time-select">Time</label>
+                <select class="form-control" id="booking-time-select" onchange="handleBookingTimeChange(this.value)">
                   <option value="10:30 am" selected>10:30 am</option>
                   <option value="11:00 am">11:00 am</option>
                   <option value="11:30 am">11:30 am</option>
@@ -194,8 +194,8 @@
             </div>
 
             <div class="slots-box">
-              <div class="slots-title">Available slots for Fri, 9 Oct 2026</div>
-              <div class="slots-list">
+              <div class="slots-title" id="slots-date-title">Available slots</div>
+              <div class="slots-list" id="slots-btn-group">
                 <button type="button" class="slot-btn active" onclick="selectSlot(this, '10:30 am')">10:30 am</button>
                 <button type="button" class="slot-btn" onclick="selectSlot(this, '11:00 am')">11:00 am</button>
                 <button type="button" class="slot-btn" onclick="selectSlot(this, '11:30 am')">11:30 am</button>
@@ -213,7 +213,7 @@
             <h3 class="card-title" style="margin-bottom: 14px;">Reason &amp; review</h3>
             <div class="form-group" style="margin-bottom: 4px;">
               <label class="form-label">Reason for visit</label>
-              <input type="text" id="booking-reason-input" class="form-control" value="Rabies booster" />
+              <input type="text" id="booking-reason-input" class="form-control" value="Rabies booster" oninput="handleBookingReasonChange(this.value)" />
             </div>
 
             <div class="booking-stepper">
@@ -225,7 +225,7 @@
               <div class="step-item">
                 <span class="step-num">2</span>
                 <span class="step-label">Pet</span>
-                <span class="step-val">Bruno</span>
+                <span class="step-val" id="step-pet-val">Bruno</span>
               </div>
               <div class="step-item">
                 <span class="step-num">3</span>
@@ -250,10 +250,10 @@
         <div class="card">
           <h3 class="card-title" style="margin-bottom: 14px;">Booking summary</h3>
           <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 14px; border-bottom: 1px solid #EFE7DC; margin-bottom: 14px;">
-            <img src="assets/pdf_img_4.jpeg" alt="Bruno" style="width: 38px; height: 38px; border-radius: 3px; object-fit: cover;" />
+            <img src="assets/pdf_img_4.jpeg" alt="Bruno" id="summary-pet-avatar" style="width: 38px; height: 38px; border-radius: 3px; object-fit: cover;" />
             <div>
-              <div style="font-weight: 800; font-size: 0.85rem; color: var(--color-heading);">Bruno</div>
-              <div style="font-size: 0.72rem; color: var(--color-muted);">Labrador · 3 years</div>
+              <div style="font-weight: 800; font-size: 0.85rem; color: var(--color-heading);" id="summary-pet-name">Bruno</div>
+              <div style="font-size: 0.72rem; color: var(--color-muted);" id="summary-pet-meta">Labrador · 3 years</div>
             </div>
           </div>
 
@@ -269,7 +269,7 @@
 
           <div style="margin-bottom: 12px;">
             <span class="stat-label">Reason for visit</span>
-            <span class="stat-value">Rabies booster</span>
+            <span class="stat-value" id="summary-reason-val">Rabies booster</span>
           </div>
 
           <div style="margin-bottom: 16px;">
