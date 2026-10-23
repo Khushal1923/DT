@@ -277,6 +277,16 @@
   // --- 3. LOCAL STORAGE DATABASE STORE ---
   const LOCAL_STORAGE_KEY = 'paw_care_local_db_v1';
 
+  function generateUUID() {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
   function getLocalStore() {
     try {
       const data = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -326,6 +336,7 @@
     client: null,
     isLive: false,
     config: DEFAULT_CONFIG,
+    generateUUID: generateUUID,
 
     // Initialize Supabase client
     init() {
@@ -458,10 +469,8 @@
           try {
             const { data, error } = await PawCareSupabase.client.auth.signInWithPassword({ email: lowerIdent, password });
             if (error) {
-              console.warn('Supabase authentication failed:', error.message);
-              return { success: false, error: error.message || 'Invalid email or password.' };
-            }
-            if (!error && data?.user) {
+              console.info('Supabase remote auth notice:', error.message, '- falling back to check registered local profiles');
+            } else if (data?.user) {
               const user = data.user;
               // fetch profile
               let profile = null;
@@ -497,9 +506,6 @@
             }
           } catch (e) {
             console.warn('Supabase auth network error, checking local store', e);
-            if (e && e.message && !e.message.includes('fetch') && !e.message.includes('network') && !e.message.includes('Failed to fetch')) {
-              return { success: false, error: e.message || 'Invalid login credentials.' };
-            }
           }
         }
 
@@ -542,7 +548,7 @@
           const hasPet = store.pets.some(p => p.owner_id === found.id);
           if (!hasPet) {
             const newPet = {
-              id: 'pet_' + Date.now(),
+              id: generateUUID(),
               owner_id: found.id,
               name: 'Bruno',
               species: 'Dog',
@@ -672,7 +678,7 @@
 
         // Local store registration
         const newProfile = {
-          id: 'usr_' + Date.now(),
+          id: generateUUID(),
           role: role,
           username: identifier,
           password: password,
@@ -691,7 +697,7 @@
         store.profiles.push(newProfile);
         if (role === 'owner') {
           const newPet = {
-            id: 'pet_' + Date.now(),
+            id: generateUUID(),
             owner_id: newProfile.id,
             name: 'Bruno',
             species: 'Dog',
@@ -740,6 +746,8 @@
         localStorage.removeItem('paw_care_session');
         localStorage.removeItem('pawcare_display_name');
         localStorage.removeItem('pawcare_email');
+        localStorage.removeItem('pawcare_role');
+        localStorage.removeItem('pawcare_last_appointment');
         PawCareSupabase.showToast('Signed out of Paw Care.', 'info');
         setTimeout(() => {
           window.location.href = 'signin.html';
@@ -804,7 +812,7 @@
         // If no pet found for this owner, create and link one
         if (targetOwnerId) {
           const newPet = {
-            id: 'pet_' + Date.now(),
+            id: generateUUID(),
             owner_id: targetOwnerId,
             name: 'Bruno',
             species: 'Dog',
@@ -828,11 +836,11 @@
 
       async saveForOwner(ownerId, petData) {
         const currentUser = PawCareSupabase.auth.getCurrentUser();
-        const targetOwnerId = ownerId || currentUser?.id || 'usr_default';
+        const targetOwnerId = ownerId || currentUser?.id || '00000000-0000-0000-0000-000000000001';
 
         const store = getLocalStore();
         let existingIndex = store.pets.findIndex(p => p.owner_id === targetOwnerId);
-        let petId = existingIndex >= 0 ? store.pets[existingIndex].id : 'pet_' + Date.now();
+        let petId = existingIndex >= 0 ? store.pets[existingIndex].id : generateUUID();
 
         const fullPetRecord = {
           id: petId,
@@ -1101,7 +1109,7 @@
         const store = getLocalStore();
         let existingIndex = store.vets.findIndex(v => v.profile_id === targetId || v.id === targetId);
         const vetRecord = {
-          id: existingIndex >= 0 ? store.vets[existingIndex].id : 'vet_' + Date.now(),
+          id: existingIndex >= 0 ? store.vets[existingIndex].id : generateUUID(),
           profile_id: targetId,
           ...vetData
         };
@@ -1156,8 +1164,11 @@
 
       async create(appointmentData) {
         const currentUser = PawCareSupabase.auth.getCurrentUser();
+        const apptId = (appointmentData.id && appointmentData.id.length === 36) ? appointmentData.id : generateUUID();
+        const validStatus = (appointmentData.status === 'pending' || !appointmentData.status) ? 'awaiting_acceptance' : appointmentData.status;
+
         const newAppt = {
-          id: appointmentData.id || 'a_' + Date.now(),
+          id: apptId,
           owner_id: appointmentData.owner_id || currentUser?.id || '00000000-0000-0000-0000-000000000001',
           owner_name: appointmentData.owner_name || (currentUser ? (currentUser.full_name || `${currentUser.first_name} ${currentUser.last_name || ''}`.trim()) : 'Pet Owner'),
           pet_id: appointmentData.pet_id || 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
@@ -1171,18 +1182,36 @@
           date: appointmentData.date || 'Fri, 9 Oct 2026',
           time: appointmentData.time || '10:30 am',
           reason: appointmentData.reason || 'Check-up',
-          status: appointmentData.status || 'pending',
+          status: validStatus,
           created_at: new Date().toISOString()
         };
 
         if (PawCareSupabase.isConfigured()) {
           try {
+            // Map remote payload to valid PostgreSQL columns in public.appointments
+            // Only use owner_id if it is a real UUID and not the mock seed ID
+            const remoteOwnerId = (newAppt.owner_id && newAppt.owner_id !== '00000000-0000-0000-0000-000000000001') ? newAppt.owner_id : null;
+            const remoteApptRecord = {
+              id: newAppt.id,
+              owner_id: remoteOwnerId,
+              pet_id: (newAppt.pet_id && newAppt.pet_id.length === 36) ? newAppt.pet_id : 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+              vet_id: (newAppt.vet_id && newAppt.vet_id.length === 36) ? newAppt.vet_id : '11111111-1111-1111-1111-111111111111',
+              date: newAppt.date,
+              time: newAppt.time,
+              reason: newAppt.reason,
+              status: newAppt.status,
+              clinic_name: newAppt.clinic_name,
+              location: newAppt.location
+            };
+
             const { data, error } = await PawCareSupabase.client
               .from('appointments')
-              .insert([newAppt])
+              .insert([remoteApptRecord])
               .select();
             if (!error && data) {
-              PawCareSupabase.showToast('Booking request sent in real-time!', 'success');
+              PawCareSupabase.showToast('Booking request synced with Supabase in real-time!', 'success');
+            } else if (error) {
+              console.warn('Supabase appointment insert notice:', error);
             }
           } catch (e) {
             console.warn('Supabase appointment insert failed, saving locally', e);
@@ -1264,10 +1293,11 @@
       },
 
       async create(recordData) {
+        const recordId = (recordData.id && recordData.id.length === 36) ? recordData.id : generateUUID();
         const newRecord = {
-          id: recordData.id || 'm_' + Date.now(),
-          pet_id: recordData.pet_id || 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
-          vet_id: recordData.vet_id || '11111111-1111-1111-1111-111111111111',
+          id: recordId,
+          pet_id: (recordData.pet_id && recordData.pet_id.length === 36) ? recordData.pet_id : 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+          vet_id: (recordData.vet_id && recordData.vet_id.length === 36) ? recordData.vet_id : '11111111-1111-1111-1111-111111111111',
           consultation_date: recordData.consultation_date || '7 Oct 2026',
           consultation_time: recordData.consultation_time || '10:30 am',
           reason: recordData.reason || 'Consultation follow-up',

@@ -738,41 +738,6 @@ async function submitBookingRequest(e) {
   }, 400);
 }
 
-// Save Consultation Record to Supabase
-async function saveConsultationRecord(e) {
-  if (e) e.preventDefault();
-  const dateEl = document.getElementById('consult-date');
-  const timeEl = document.getElementById('consult-time');
-  const complaintEl = document.getElementById('consult-chief-complaint');
-  const diagnosisEl = document.getElementById('consult-diagnosis');
-  const commEl = document.getElementById('consult-communication');
-  const followupEl = document.getElementById('consult-followup');
-
-  const recordData = {
-    consultation_date: dateEl ? dateEl.value : '7 Oct 2026',
-    consultation_time: timeEl ? timeEl.value : '10:30 am',
-    chief_complaint: complaintEl ? complaintEl.value : '',
-    diagnosis_notes: diagnosisEl ? diagnosisEl.value : '',
-    owner_communication: commEl ? commEl.value : '',
-    follow_up_appointment: followupEl ? followupEl.value : '',
-    prescriptions: [
-      { medicine: 'Veterinarian-specified ear drops', dosage: '3 drops', duration: '7 days', instructions: 'In affected ear, once daily' }
-    ],
-    vaccinations: [
-      { vaccine: 'Rabies', date: 'Not administered', next_due: '9 Oct 2026', status: 'Pending acceptance' },
-      { vaccine: 'DHPP', date: '21 Mar 2026', next_due: '21 Dec 2026', status: 'Next due 21 Dec 2026' }
-    ]
-  };
-
-  if (window.PawCareSupabase) {
-    await window.PawCareSupabase.medicalRecords.create(recordData);
-  }
-
-  setTimeout(() => {
-    window.location.href = 'vet-overview.html';
-  }, 600);
-}
-
 // Toggle Notification Preference
 async function handlePreferenceToggle(prefKey, toggleEl) {
   if (!toggleEl) return;
@@ -997,9 +962,12 @@ async function hydrateWorkspaceData() {
         const docName = vet?.name || (user?.first_name ? `Dr. ${user.first_name} ${user.last_name || ''}`.trim() : 'Dr. Anita Rao');
         const docNameEl = document.querySelector('.grid-booking-layout .card h2');
         if (docNameEl) docNameEl.textContent = docName;
-
-        const clinicNameEl = document.querySelector('#clinic h3');
+        const clinicNameEl = document.getElementById('vet-card-clinic-name') || document.querySelector('#clinic [style*="font-weight: 600"]');
         if (clinicNameEl && vet?.clinic_name) clinicNameEl.textContent = vet.clinic_name;
+        const clinicLocEl = document.getElementById('vet-card-clinic-location');
+        if (clinicLocEl && vet?.clinic_location) clinicLocEl.textContent = vet.clinic_location;
+        const clinicHoursEl = document.getElementById('vet-card-clinic-hours');
+        if (clinicHoursEl && vet?.opening_hours) clinicHoursEl.textContent = vet.opening_hours;
 
         // Populate practice configuration inputs
         const nameInput = document.getElementById('vet-name-input');
@@ -1745,17 +1713,91 @@ function removePrescriptionRow(btn) {
   if (row) row.remove();
 }
 
-function saveConsultationRecord(e) {
+async function saveConsultationRecord(e) {
   if (e) e.preventDefault();
   const patient = patientRecordsData[currentRecordKey];
   const petName = patient ? patient.name : 'Patient';
 
-  // Read current diagnosis and store in memory
+  const dateEl = document.getElementById('consult-date');
+  const timeEl = document.getElementById('consult-time');
+  const complaintEl = document.getElementById('consult-chief-complaint');
   const diagInput = document.getElementById('consult-diagnosis');
-  if (diagInput && patient) {
-    patient.diagnosis = diagInput.value.trim();
+  const notesEl = document.getElementById('consult-clinical-notes');
+  const commEl = document.getElementById('consult-communication');
+  const followupEl = document.getElementById('consult-followup');
+
+  // Read prescriptions table rows dynamically
+  const prescriptions = [];
+  const rows = document.querySelectorAll('#prescription-table-body tr');
+  rows.forEach(tr => {
+    const inputs = tr.querySelectorAll('.prescription-input');
+    if (inputs.length >= 4) {
+      const med = inputs[0].value.trim();
+      const dosage = inputs[1].value.trim();
+      const duration = inputs[2].value.trim();
+      const instructions = inputs[3].value.trim();
+      if (med) {
+        prescriptions.push({ medicine: med, dosage, duration, instructions });
+      }
+    }
+  });
+
+  // Update in-memory patient record data
+  if (patient) {
+    if (diagInput) patient.diagnosis = diagInput.value.trim();
+    if (notesEl) patient.clinicalNotes = notesEl.value.trim();
+    if (complaintEl) patient.chiefComplaint = complaintEl.value.trim();
+    if (commEl) patient.communication = commEl.value.trim();
+    if (followupEl) patient.followup = followupEl.value.trim();
+    if (prescriptions.length > 0) patient.prescriptions = prescriptions;
+
+    // Prepend to history log
+    patient.history = patient.history || [];
+    const todayStr = dateEl ? dateEl.value.trim() : '7 Oct 2026';
+    const diagShort = diagInput ? diagInput.value.trim().slice(0, 80) + '...' : 'Consultation notes updated';
+    patient.history.unshift({
+      date: todayStr,
+      title: complaintEl ? complaintEl.value.trim().slice(0, 45) : 'Consultation examination',
+      desc: diagShort
+    });
+
+    const historyListEl = document.getElementById('detail-history-list');
+    if (historyListEl) {
+      historyListEl.innerHTML = patient.history.map(item => `
+        <div class="history-item">
+          <div class="history-date">${item.date}</div>
+          <div class="history-title">${item.title}</div>
+          <div class="history-sub">${item.desc}</div>
+        </div>
+      `).join('');
+    }
   }
 
+  // Persist to Supabase and Local Storage
+  const recordData = {
+    pet_id: currentRecordKey === 'bruno' ? 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb' : (window.PawCareSupabase?.generateUUID ? window.PawCareSupabase.generateUUID() : 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
+    vet_id: '11111111-1111-1111-1111-111111111111',
+    consultation_date: dateEl ? dateEl.value : '7 Oct 2026',
+    consultation_time: timeEl ? timeEl.value : '9:00 am',
+    reason: complaintEl && complaintEl.value.trim() ? complaintEl.value.trim().slice(0, 80) : 'Ear inflammation follow-up',
+    chief_complaint: complaintEl ? complaintEl.value.trim() : '',
+    diagnosis_notes: diagInput ? diagInput.value.trim() : '',
+    owner_communication: commEl ? commEl.value.trim() : '',
+    follow_up_appointment: followupEl ? followupEl.value.trim() : '',
+    prescriptions: prescriptions.length > 0 ? prescriptions : [
+      { medicine: 'Otomax Ear Drops', dosage: '3 drops', duration: '7 days', instructions: 'In left ear once daily' }
+    ],
+    vaccinations: patient?.vaccinations || [
+      { vaccine: 'Rabies', date: 'Not administered', next_due: '9 Oct 2026', status: 'Pending acceptance' },
+      { vaccine: 'DHPP', date: '21 Mar 2026', next_due: '21 Dec 2026', status: 'Next due 21 Dec 2026' }
+    ]
+  };
+
+  if (window.PawCareSupabase) {
+    await window.PawCareSupabase.medicalRecords.create(recordData);
+  }
+
+  // Show visual confirmation toast
   const toastEl = document.getElementById('consult-save-toast');
   if (toastEl) {
     toastEl.style.display = 'block';
