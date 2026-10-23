@@ -127,10 +127,10 @@
         <!-- Left Photo Column -->
         <div style="display: flex; flex-direction: column; gap: 18px;">
           <div class="card">
-            <img src="assets/pdf_img_4.jpeg" alt="Bruno" style="width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 3px; margin-bottom: 14px;" />
-            <h2 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800; color: var(--color-heading); margin-bottom: 6px;">Bruno</h2>
+            <img src="assets/pdf_img_4.jpeg" alt="Pet photo" id="pet-card-photo" style="width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 3px; margin-bottom: 14px;" />
+            <h2 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800; color: var(--color-heading); margin-bottom: 6px;" id="pet-card-name">Bruno</h2>
             <div style="margin-bottom: 14px;">
-              <span class="badge badge-sand">Dog · Labrador</span>
+              <span class="badge badge-sand" id="pet-card-badge">Dog · Labrador</span>
             </div>
             <button type="button" class="btn btn-outline btn-block">Change pet photo</button>
           </div>
@@ -213,8 +213,8 @@
           </div>
 
           <div class="form-actions-bar">
-            <a href="overview.html" class="btn btn-outline">Cancel</a>
-            <button type="button" class="btn btn-primary" onclick="savePetProfile(event)">Save pet profile</button>
+            <a href="overview.html" id="pet-cancel-link" class="btn btn-outline">Cancel</a>
+            <button type="button" id="pet-save-btn" class="btn btn-primary" onclick="savePetProfile(event)">Save pet profile</button>
           </div>
         </div>
       </div>

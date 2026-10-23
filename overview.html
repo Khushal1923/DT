@@ -346,6 +346,13 @@
       greetingEl.textContent = firstName || 'there';
     }
 
+    /* Pet name in subtitle */
+    var petNameEl = document.getElementById('overview-pet-name');
+    var storedPetName = localStorage.getItem('pawcare_pet_name');
+    if (petNameEl && storedPetName) {
+      petNameEl.textContent = storedPetName;
+    }
+
     /* Live date */
     var dateEl = document.getElementById('overview-date');
     if (dateEl) {

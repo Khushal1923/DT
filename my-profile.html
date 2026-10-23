@@ -145,13 +145,13 @@
           <div class="card">
             <h3 class="card-title" style="font-size: 0.9rem; margin-bottom: 12px;">Your companion</h3>
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
-              <img src="assets/pdf_img_4.jpeg" alt="Bruno" style="width: 42px; height: 42px; border-radius: 3px; object-fit: cover;" />
+              <img id="my-prof-pet-photo" src="assets/pdf_img_4.jpeg" alt="Bruno" style="width: 42px; height: 42px; border-radius: 3px; object-fit: cover;" />
               <div>
                 <div style="font-weight: 800; font-size: 0.85rem; color: var(--color-heading);" id="prof-pet-name">Bruno</div>
                 <div style="font-size: 0.72rem; color: var(--color-muted);" id="prof-pet-breed">Labrador · 3 years</div>
               </div>
             </div>
-            <a href="pet-profile.html" class="btn btn-outline btn-block">View pet profile</a>
+            <a href="pet-profile.html" id="prof-pet-link" class="btn btn-outline btn-block">View pet profile</a>
           </div>
         </div>
 
@@ -206,8 +206,8 @@
           </div>
 
           <div class="form-actions-bar">
-            <a href="overview.html" class="btn btn-outline">Cancel</a>
-            <button type="button" class="btn btn-primary" onclick="saveUserProfile(event)">Save profile</button>
+            <a href="overview.html" id="prof-cancel-btn" class="btn btn-outline">Cancel</a>
+            <button type="button" id="prof-save-btn" class="btn btn-primary" onclick="saveUserProfile(event)">Save profile</button>
           </div>
         </div>
       </div>
@@ -253,8 +253,9 @@
     var user      = window.PawCareSupabase ? window.PawCareSupabase.auth.getCurrentUser() : null;
     var fullName  = (user && (user.full_name || user.first_name)) || localStorage.getItem('pawcare_display_name') || 'Pet Owner';
     var email     = (user && user.email) || localStorage.getItem('pawcare_email') || '';
-    var petName   = localStorage.getItem('pawcare_pet_name')      || 'Bruno';
-    var petBreed  = localStorage.getItem('pawcare_pet_breed')     || 'Labrador · 3 years';
+    var isDemo    = !user || user.id === '00000000-0000-0000-0000-000000000001';
+    var petName   = localStorage.getItem('pawcare_pet_name')      || (isDemo ? 'Bruno' : '');
+    var petBreed  = localStorage.getItem('pawcare_pet_breed')     || (isDemo ? 'Labrador · 3 years' : '');
     var phone     = localStorage.getItem('pawcare_phone')         || '';
 
     var parts     = fullName.trim().split(/\s+/);
@@ -274,8 +275,13 @@
     /* ── Pet companion section ── */
     var petNameEl  = document.getElementById('prof-pet-name');
     var petBreedEl = document.getElementById('prof-pet-breed');
-    if (petNameEl)  petNameEl.textContent  = petName;
-    if (petBreedEl) petBreedEl.textContent = petBreed;
+    var petLinkEl  = document.getElementById('prof-pet-link');
+    if (petNameEl)  petNameEl.textContent  = petName || 'Not added yet';
+    if (petBreedEl) petBreedEl.textContent = petBreed || 'Configured in Step 2';
+    if (!petName && petLinkEl) {
+      petLinkEl.textContent = 'Next: Add pet profile →';
+      petLinkEl.href = 'pet-profile.html?setup=1';
+    }
 
     /* ── Form fields ── */
     setVal('profile-first-name', firstName);

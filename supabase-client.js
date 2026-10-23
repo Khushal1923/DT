@@ -27,7 +27,8 @@
         city: 'Pune',
         postal_code: '411004',
         member_since: 'March 2026',
-        avatar_url: null
+        avatar_url: null,
+        profile_completed: true
       },
       {
         id: '00000000-0000-0000-0000-000000000002',
@@ -43,7 +44,8 @@
         city: 'Pune',
         postal_code: '411004',
         member_since: 'January 2025',
-        avatar_url: 'assets/pdf_img_5.jpeg'
+        avatar_url: 'assets/pdf_img_5.jpeg',
+        profile_completed: true
       }
     ],
     vets: [
@@ -544,28 +546,8 @@
         }
 
         // Ensure this owner has an associated pet in store
-        if (found.role === 'owner') {
-          const hasPet = store.pets.some(p => p.owner_id === found.id);
-          if (!hasPet) {
-            const newPet = {
-              id: generateUUID(),
-              owner_id: found.id,
-              name: 'Bruno',
-              species: 'Dog',
-              breed: 'Labrador',
-              age: '3 years',
-              weight: 28.4,
-              weight_measured_at: 'Today',
-              sex: 'Male · Neutered',
-              microchip: 'Not added',
-              allergies: 'None reported',
-              past_illness: 'None',
-              photo_url: 'assets/pdf_img_4.jpeg'
-            };
-            store.pets.unshift(newPet);
-            setLocalStore(store);
-          }
-        }
+        const hasPet = store.pets.some(p => p.owner_id === found.id);
+        const isCompleted = found.profile_completed === true || (found.id === '00000000-0000-0000-0000-000000000001') || (found.role === 'owner' && hasPet) || (found.role === 'vet');
 
         const fullName = found.full_name || `${found.first_name || ''} ${found.last_name || ''}`.trim() || identifier;
         const sessionData = {
@@ -576,7 +558,8 @@
             role: found.role || role,
             first_name: found.first_name || identifier,
             last_name: found.last_name || '',
-            full_name: fullName
+            full_name: fullName,
+            profile_completed: isCompleted
           },
           token: 'token_' + Date.now()
         };
@@ -585,6 +568,16 @@
         localStorage.setItem('pawcare_display_name', fullName);
         localStorage.setItem('pawcare_email', sessionData.user.email);
         localStorage.setItem('pawcare_role', sessionData.user.role);
+
+        // Set or clear pet keys based on whether user has an existing pet
+        const userPet = store.pets.find(p => p.owner_id === found.id);
+        if (userPet) {
+          localStorage.setItem('pawcare_pet_name', userPet.name);
+          localStorage.setItem('pawcare_pet_breed', `${userPet.breed}${userPet.age ? ' · ' + userPet.age : ''}`);
+        } else if (found.id !== '00000000-0000-0000-0000-000000000001') {
+          localStorage.removeItem('pawcare_pet_name');
+          localStorage.removeItem('pawcare_pet_breed');
+        }
 
         PawCareSupabase.showToast(`Signed in as ${sessionData.user.first_name}!`, 'success');
         return { success: true, session: sessionData };
@@ -660,7 +653,8 @@
                   role: role,
                   first_name: firstName,
                   last_name: lastName,
-                  full_name: finalFullName
+                  full_name: finalFullName,
+                  profile_completed: false
                 },
                 token: data.session.access_token
               };
@@ -668,6 +662,9 @@
               localStorage.setItem('pawcare_display_name', finalFullName);
               localStorage.setItem('pawcare_email', lowerIdent);
               localStorage.setItem('pawcare_role', role);
+              localStorage.removeItem('pawcare_pet_name');
+              localStorage.removeItem('pawcare_pet_breed');
+              localStorage.removeItem('pawcare_phone');
             }
             PawCareSupabase.showToast('Account created in Supabase!', 'success');
             return { success: true, data, requiresEmailConfirmation: !hasSession };
@@ -691,28 +688,12 @@
           city: '',
           postal_code: '',
           member_since: 'October 2026',
-          avatar_url: null
+          avatar_url: null,
+          profile_completed: false
         };
 
         store.profiles.push(newProfile);
-        if (role === 'owner') {
-          const newPet = {
-            id: generateUUID(),
-            owner_id: newProfile.id,
-            name: 'Bruno',
-            species: 'Dog',
-            breed: 'Labrador',
-            age: '3 years',
-            weight: 28.4,
-            weight_measured_at: 'Today',
-            sex: 'Male · Neutered',
-            microchip: 'Not added',
-            allergies: 'None reported',
-            past_illness: 'None',
-            photo_url: 'assets/pdf_img_4.jpeg'
-          };
-          store.pets.unshift(newPet);
-        }
+        // Note: We do NOT auto-create a mock pet for new users, so they can enter their own pet's details in Step 2.
         setLocalStore(store);
 
         const sessionData = {
@@ -723,7 +704,8 @@
             role: role,
             first_name: newProfile.first_name,
             last_name: newProfile.last_name,
-            full_name: newProfile.full_name
+            full_name: newProfile.full_name,
+            profile_completed: false
           },
           token: 'token_' + Date.now()
         };
@@ -731,6 +713,9 @@
         localStorage.setItem('pawcare_display_name', newProfile.full_name);
         localStorage.setItem('pawcare_email', newProfile.email);
         localStorage.setItem('pawcare_role', role);
+        localStorage.removeItem('pawcare_pet_name');
+        localStorage.removeItem('pawcare_pet_breed');
+        localStorage.removeItem('pawcare_phone');
 
         return { success: true, profile: newProfile, requiresEmailConfirmation: false };
       },
@@ -809,29 +794,13 @@
           if (found) return found;
         }
 
-        // If no pet found for this owner, create and link one
-        if (targetOwnerId) {
-          const newPet = {
-            id: generateUUID(),
-            owner_id: targetOwnerId,
-            name: 'Bruno',
-            species: 'Dog',
-            breed: 'Labrador',
-            age: '3 years',
-            weight: 28.4,
-            weight_measured_at: 'Today',
-            sex: 'Male · Neutered',
-            microchip: 'Not added',
-            allergies: 'None reported',
-            past_illness: 'None',
-            photo_url: 'assets/pdf_img_4.jpeg'
-          };
-          store.pets.unshift(newPet);
-          setLocalStore(store);
-          return newPet;
+        // Only return default demo pet if targetOwnerId is the demo owner ID, or no owner specified
+        if (!targetOwnerId || targetOwnerId === '00000000-0000-0000-0000-000000000001') {
+          return store.pets[0] || null;
         }
 
-        return store.pets[0];
+        // For newly registered accounts that haven't created a pet yet, return null
+        return null;
       },
 
       async saveForOwner(ownerId, petData) {
@@ -841,20 +810,34 @@
         const store = getLocalStore();
         let existingIndex = store.pets.findIndex(p => p.owner_id === targetOwnerId);
         let petId = existingIndex >= 0 ? store.pets[existingIndex].id : generateUUID();
+        const existingPet = existingIndex >= 0 ? store.pets[existingIndex] : null;
+
+        const petName = petData.name && petData.name.trim() ? petData.name.trim() : (existingPet ? existingPet.name : 'My Companion');
+        const petSpecies = petData.species || (existingPet ? existingPet.species : 'Dog');
+        const petBreed = petData.breed && petData.breed.trim() ? petData.breed.trim() : (existingPet ? existingPet.breed : 'Companion');
+        const petAge = petData.age && petData.age.trim() ? petData.age.trim() : (existingPet ? existingPet.age : '');
+        const petWeight = (petData.weight !== undefined && petData.weight !== '' && !isNaN(parseFloat(petData.weight))) ? parseFloat(petData.weight) : (existingPet ? existingPet.weight : 0);
+        const petSex = petData.sex || (existingPet ? existingPet.sex : 'Male · Neutered');
+        const petMicrochip = petData.microchip && petData.microchip.trim() ? petData.microchip.trim() : 'Not added';
+        const petAllergies = petData.allergies && petData.allergies.trim() ? petData.allergies.trim() : 'None reported';
+        const petIllness = petData.past_illness && petData.past_illness.trim() ? petData.past_illness.trim() : 'None';
+        const defaultPhoto = petSpecies === 'Cat' ? 'assets/cat.jpg' : 'assets/pdf_img_4.jpeg';
+        const petPhoto = petData.photo_url || (existingPet ? existingPet.photo_url : defaultPhoto);
 
         const fullPetRecord = {
           id: petId,
           owner_id: targetOwnerId,
-          name: petData.name && petData.name.trim() ? petData.name.trim() : 'Bruno',
-          species: petData.species || 'Dog',
-          breed: petData.breed && petData.breed.trim() ? petData.breed.trim() : 'Labrador',
-          age: petData.age && petData.age.trim() ? petData.age.trim() : '3 years',
-          weight: petData.weight ? parseFloat(petData.weight) || 10 : 10,
-          sex: petData.sex || 'Male · Neutered',
-          microchip: petData.microchip || 'Not added',
-          allergies: petData.allergies || 'None reported',
-          past_illness: petData.past_illness || 'None',
-          photo_url: petData.photo_url || (existingIndex >= 0 ? store.pets[existingIndex].photo_url : 'assets/pdf_img_4.jpeg')
+          name: petName,
+          species: petSpecies,
+          breed: petBreed,
+          age: petAge,
+          weight: petWeight,
+          weight_measured_at: 'Today',
+          sex: petSex,
+          microchip: petMicrochip,
+          allergies: petAllergies,
+          past_illness: petIllness,
+          photo_url: petPhoto
         };
 
         if (PawCareSupabase.isConfigured()) {
@@ -876,11 +859,25 @@
         } else {
           store.pets.unshift(fullPetRecord);
         }
+
+        // Mark profile as completed on owner profile
+        const pIndex = store.profiles.findIndex(p => p.id === targetOwnerId);
+        if (pIndex >= 0) {
+          store.profiles[pIndex].profile_completed = true;
+        }
+
+        // Update active session user
+        const session = PawCareSupabase.auth.getSession();
+        if (session && session.user && (session.user.id === targetOwnerId || !session.user.id)) {
+          session.user.profile_completed = true;
+          localStorage.setItem('paw_care_session', JSON.stringify(session));
+        }
+
         setLocalStore(store);
 
         // Also save convenient helper keys in localStorage
         localStorage.setItem('pawcare_pet_name', fullPetRecord.name);
-        localStorage.setItem('pawcare_pet_breed', `${fullPetRecord.breed} · ${fullPetRecord.age}`);
+        localStorage.setItem('pawcare_pet_breed', `${fullPetRecord.breed}${fullPetRecord.age ? ' · ' + fullPetRecord.age : ''}`);
 
         PawCareSupabase.showToast('Pet profile saved successfully!', 'success');
         if (window.PawCareRealtime) {
@@ -1020,6 +1017,7 @@
           const full = `${session.user.first_name || ''} ${session.user.last_name || ''}`.trim();
           session.user.full_name = full;
           if (updates.email) session.user.email = updates.email;
+          if (updates.profile_completed !== undefined) session.user.profile_completed = updates.profile_completed;
           localStorage.setItem('paw_care_session', JSON.stringify(session));
           localStorage.setItem('pawcare_display_name', full);
           if (updates.email) localStorage.setItem('pawcare_email', updates.email);

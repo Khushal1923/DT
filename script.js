@@ -216,7 +216,8 @@ async function handleAuthSubmit(e) {
           }
         } else {
           setTimeout(() => {
-            window.location.href = currentSignInRole === 'vet' ? 'vet-profile.html?setup=1' : 'overview.html';
+            // When any user creates an account, direct him first to fill his data, then pets data, and create a profile
+            window.location.href = currentSignInRole === 'vet' ? 'vet-profile.html?setup=1' : 'my-profile.html?setup=1';
           }, 400);
         }
       } else {
@@ -231,8 +232,19 @@ async function handleAuthSubmit(e) {
       // Sign in mode
       const res = await window.PawCareSupabase.auth.signIn(email, password, currentSignInRole);
       if (res && res.success) {
+        const user = window.PawCareSupabase.auth.getCurrentUser();
+        const pet = await window.PawCareSupabase.pets.getForOwner(user?.id);
+        const needsSetup = currentSignInRole === 'owner' && user && user.profile_completed === false && !pet;
+
         setTimeout(() => {
-          window.location.href = currentSignInRole === 'vet' ? 'vet-overview.html' : 'overview.html';
+          if (currentSignInRole === 'vet') {
+            window.location.href = 'vet-overview.html';
+          } else if (needsSetup) {
+            // Direct to finish profile and pet setup if not completed yet
+            window.location.href = 'my-profile.html?setup=1';
+          } else {
+            window.location.href = 'overview.html';
+          }
         }, 400);
       } else {
         if (errorBox) {
@@ -557,27 +569,51 @@ async function savePetProfile(e) {
   const allergiesEl = document.getElementById('pet-allergies');
   const illnessEl = document.getElementById('pet-past-illness');
 
+  const petName = nameEl ? nameEl.value.trim() : '';
+  if (!petName) {
+    let errBox = document.getElementById('pet-validation-error');
+    if (!errBox && nameEl) {
+      errBox = document.createElement('div');
+      errBox.id = 'pet-validation-error';
+      errBox.style.color = '#B91C1C';
+      errBox.style.fontSize = '0.78rem';
+      errBox.style.fontWeight = '600';
+      errBox.style.marginTop = '4px';
+      nameEl.closest('.form-group').appendChild(errBox);
+    }
+    if (errBox) errBox.textContent = 'Please enter your pet’s name to complete your profile.';
+    if (nameEl) nameEl.focus();
+    window.PawCareSupabase?.showToast('Please enter your pet’s name to complete your profile.', 'error');
+    return;
+  }
+
+  // Remove validation error if fixed
+  const errBox = document.getElementById('pet-validation-error');
+  if (errBox) errBox.remove();
+
   const user = window.PawCareSupabase ? window.PawCareSupabase.auth.getCurrentUser() : null;
   const ownerId = user?.id || '00000000-0000-0000-0000-000000000001';
 
   const updates = {
-    name: nameEl && nameEl.value.trim() ? nameEl.value.trim() : 'Bruno',
+    name: petName,
     species: speciesEl ? speciesEl.value : 'Dog',
-    breed: breedEl && breedEl.value.trim() ? breedEl.value.trim() : 'Labrador',
-    age: ageEl && ageEl.value.trim() ? ageEl.value.trim() : '3 years',
-    weight: weightEl && weightEl.value ? parseFloat(weightEl.value) || 28.4 : 28.4,
+    breed: breedEl && breedEl.value.trim() ? breedEl.value.trim() : 'Companion',
+    age: ageEl && ageEl.value.trim() ? ageEl.value.trim() : '',
+    weight: weightEl && weightEl.value && !isNaN(parseFloat(weightEl.value)) ? parseFloat(weightEl.value) : 0,
     sex: sexEl ? sexEl.value : 'Male · Neutered',
-    microchip: microchipEl ? microchipEl.value : 'Not added',
-    allergies: allergiesEl ? allergiesEl.value : 'None reported',
-    past_illness: illnessEl ? illnessEl.value : 'None'
+    microchip: microchipEl && microchipEl.value.trim() ? microchipEl.value.trim() : 'Not added',
+    allergies: allergiesEl && allergiesEl.value.trim() ? allergiesEl.value.trim() : 'None reported',
+    past_illness: illnessEl && illnessEl.value.trim() ? illnessEl.value.trim() : 'None',
+    photo_url: (speciesEl && speciesEl.value === 'Cat') ? 'assets/cat.jpg' : 'assets/pdf_img_4.jpeg'
   };
 
   if (window.PawCareSupabase) {
     await window.PawCareSupabase.pets.saveForOwner(ownerId, updates);
+    await window.PawCareSupabase.profiles.update(ownerId, { profile_completed: true });
   }
 
   localStorage.setItem('pawcare_pet_name', updates.name);
-  localStorage.setItem('pawcare_pet_breed', `${updates.breed} · ${updates.age}`);
+  localStorage.setItem('pawcare_pet_breed', `${updates.breed}${updates.age ? ' · ' + updates.age : ''}`);
 
   // Immediate UI reflection on pet-profile page
   const titleName = document.getElementById('pet-title-name');
@@ -588,6 +624,8 @@ async function savePetProfile(e) {
   if (cardName) cardName.textContent = updates.name;
   const cardBadge = document.querySelector('.grid-profile-layout .card .badge');
   if (cardBadge) cardBadge.textContent = `${updates.species} · ${updates.breed}`;
+
+  window.PawCareSupabase?.showToast(`🎉 Profile created! Welcome ${updates.name} to Paw Care!`, 'success');
 
   setTimeout(() => {
     window.location.href = 'overview.html';
@@ -612,6 +650,12 @@ async function saveUserProfile(e) {
   const lastName = lastEl && lastEl.value.trim() ? lastEl.value.trim() : '';
   const fullName = `${firstName} ${lastName}`.trim();
   const email = emailEl && emailEl.value.trim() ? emailEl.value.trim() : (user?.email || '');
+
+  if (!firstName) {
+    window.PawCareSupabase?.showToast('Please enter your first name.', 'error');
+    if (firstEl) firstEl.focus();
+    return;
+  }
 
   const updates = {
     first_name: firstName,
@@ -650,6 +694,7 @@ async function saveUserProfile(e) {
   const isSetup = params.get('setup') === '1';
 
   if (isSetup) {
+    window.PawCareSupabase?.showToast('Personal details saved! Step 1 complete. Next: Add your pet →', 'success');
     setTimeout(() => {
       window.location.href = 'pet-profile.html?setup=1';
     }, 400);
@@ -778,6 +823,12 @@ async function hydrateWorkspaceData() {
     // 1. Hydrate Pet Data (Overview, Health Records, Pet Profile, My Profile companion)
     const pet = await window.PawCareSupabase.pets.getForOwner(user?.id);
 
+    // Protection: If a pet owner has not completed their profile setup and has no pet, redirect to Step 1 setup
+    if (window.location.pathname.includes('overview.html') && user && user.role === 'owner' && user.profile_completed === false && !pet) {
+      window.location.href = 'my-profile.html?setup=1';
+      return;
+    }
+
     // Pet Profile Form (pet-profile.html)
     if (document.getElementById('pet-name')) {
       const nameEl = document.getElementById('pet-name');
@@ -792,23 +843,88 @@ async function hydrateWorkspaceData() {
         if (nameEl) nameEl.value = pet.name || '';
         if (breedEl) breedEl.value = pet.breed || '';
         if (ageEl) ageEl.value = pet.age || '';
-        if (weightEl) weightEl.value = pet.weight || '';
+        if (weightEl) weightEl.value = (pet.weight !== undefined && pet.weight > 0) ? pet.weight : '';
         if (allergiesEl) allergiesEl.value = pet.allergies || '';
         if (illnessEl) illnessEl.value = pet.past_illness || '';
         if (speciesEl && pet.species) speciesEl.value = pet.species;
+      } else if (isSetup) {
+        // Clear default placeholder text for brand new users
+        if (nameEl) {
+          nameEl.value = '';
+          nameEl.placeholder = 'e.g. Bruno, Bella, Max, Luna';
+          nameEl.required = true;
+        }
+        if (breedEl) {
+          breedEl.value = '';
+          breedEl.placeholder = 'e.g. Labrador Retriever, Persian Cat';
+        }
+        if (ageEl) {
+          ageEl.value = '';
+          ageEl.placeholder = 'e.g. 3 years, 6 months';
+        }
+        if (weightEl) {
+          weightEl.value = '';
+          weightEl.placeholder = 'e.g. 28.4';
+        }
+        if (allergiesEl) {
+          allergiesEl.value = '';
+          allergiesEl.placeholder = 'e.g. Chicken protein or None reported';
+        }
+        if (illnessEl) {
+          illnessEl.value = '';
+          illnessEl.placeholder = 'e.g. Routine checkup or any treated conditions...';
+        }
       }
 
       // Left card photo details
-      const petCardName = document.querySelector('.grid-profile-layout .card h2');
-      const petCardBadge = document.querySelector('.grid-profile-layout .card .badge');
-      if (petCardName) petCardName.textContent = pet ? pet.name : 'Your companion';
-      if (petCardBadge) petCardBadge.textContent = pet ? `${pet.species || 'Dog'} · ${pet.breed || 'Companion'}` : 'New companion';
+      const petCardName = document.getElementById('pet-card-name') || document.querySelector('.grid-profile-layout .card h2');
+      const petCardBadge = document.getElementById('pet-card-badge') || document.querySelector('.grid-profile-layout .card .badge');
+      const petCardPhoto = document.getElementById('pet-card-photo') || document.querySelector('.grid-profile-layout .card img');
+
+      if (petCardName) petCardName.textContent = pet ? pet.name : (isSetup ? 'Your companion' : 'Bruno');
+      if (petCardBadge) petCardBadge.textContent = pet ? `${pet.species || 'Dog'} · ${pet.breed || 'Companion'}` : (isSetup ? 'New companion' : 'Dog · Labrador');
+      if (petCardPhoto && pet?.photo_url) petCardPhoto.src = pet.photo_url;
 
       // Header title & subtitle
       const petTitle = document.getElementById('pet-title-name');
-      if (petTitle && pet?.name) petTitle.textContent = pet.name;
       const petSub = document.getElementById('pet-subtitle-name');
-      if (petSub && pet?.name) petSub.textContent = pet.name;
+      if (isSetup && !pet) {
+        const pageTitle = document.querySelector('.page-title');
+        if (pageTitle) pageTitle.innerHTML = 'Add your <span id="pet-title-name">companion</span>’s details';
+        const pageSub = document.querySelector('.page-subtitle');
+        if (pageSub) pageSub.innerHTML = 'The little details that help your veterinarian care for your pet.';
+        document.title = 'Add Pet Details — Paw Care';
+      } else {
+        if (petTitle && pet?.name) petTitle.textContent = pet.name;
+        if (petSub && pet?.name) petSub.textContent = pet.name;
+      }
+
+      // Real-time live preview syncing while typing
+      if (nameEl) {
+        nameEl.addEventListener('input', () => {
+          const val = nameEl.value.trim() || 'Your companion';
+          const tName = document.getElementById('pet-title-name');
+          if (tName) tName.textContent = val;
+          const sName = document.getElementById('pet-subtitle-name');
+          if (sName) sName.textContent = val;
+          if (petCardName) petCardName.textContent = val;
+        });
+      }
+      if (speciesEl) {
+        speciesEl.addEventListener('change', () => {
+          const sp = speciesEl.value;
+          const b = breedEl && breedEl.value.trim() ? breedEl.value.trim() : 'Companion';
+          if (petCardBadge) petCardBadge.textContent = `${sp} · ${b}`;
+          if (petCardPhoto) petCardPhoto.src = sp === 'Cat' ? 'assets/cat.jpg' : 'assets/pdf_img_4.jpeg';
+        });
+      }
+      if (breedEl) {
+        breedEl.addEventListener('input', () => {
+          const sp = speciesEl ? speciesEl.value : 'Dog';
+          const b = breedEl.value.trim() || 'Companion';
+          if (petCardBadge) petCardBadge.textContent = `${sp} · ${b}`;
+        });
+      }
 
       // Setup Step 2 Banner
       if (isSetup) {
@@ -816,44 +932,89 @@ async function hydrateWorkspaceData() {
         if (!setupBanner) {
           setupBanner = document.createElement('div');
           setupBanner.id = 'setup-step-banner';
-          setupBanner.className = 'alert alert-success d-flex align-items-center justify-content-between p-3 mb-4 rounded-3 shadow-sm';
-          setupBanner.style.backgroundColor = '#FAF5EC';
-          setupBanner.style.border = '1px solid #D9C3AC';
-          setupBanner.style.color = '#482B19';
+          setupBanner.className = 'card-sand mb-4';
+          setupBanner.style.border = '2px solid #D9C3AC';
+          setupBanner.style.padding = '18px 22px';
+          setupBanner.style.borderRadius = '6px';
           setupBanner.innerHTML = `
-            <div>
-              <strong style="font-size: 0.96rem;">🐾 Step 2 of 2: Set your pet's details</strong>
-              <div style="font-size: 0.8rem; margin-top: 2px;">Tell us about your companion so your veterinarian has full context for every visit.</div>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                  <span class="badge" style="background-color: #2E6930; color: #FAF5EC; font-size: 0.74rem; font-weight: 700; padding: 4px 10px;">Step 2 of 2</span>
+                  <strong style="font-size: 1.05rem; color: #482B19; font-family: var(--font-heading);">Set Your Pet's Details &amp; Create Profile</strong>
+                </div>
+                <div style="font-size: 0.82rem; color: #5C4332; line-height: 1.5;">
+                  Tell us about your companion so your veterinarian has full context for appointments, vaccinations, and medical records.
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 0.75rem; font-weight: 700; color: #2E6930;">Step 2 of 2</span>
+                <div style="width: 100px; height: 8px; background: #E5D7C6; border-radius: 4px; overflow: hidden;">
+                  <div style="width: 100%; height: 100%; background: #2E6930; border-radius: 4px;"></div>
+                </div>
+              </div>
             </div>
-            <span class="badge bg-dark text-white px-3 py-2" style="font-size: 0.76rem;">Step 2: Pet Details</span>
           `;
           const mainCol = document.querySelector('.app-main');
           if (mainCol && mainCol.children.length > 1) {
             mainCol.insertBefore(setupBanner, mainCol.children[2]);
           }
         }
-        const saveBtn = document.querySelector('button[onclick="savePetProfile(event)"]');
-        if (saveBtn) saveBtn.textContent = 'Save pet details & go to dashboard →';
+        const saveBtn = document.getElementById('pet-save-btn') || document.querySelector('button[onclick="savePetProfile(event)"]');
+        if (saveBtn) {
+          saveBtn.innerHTML = `
+            <span>Save Pet Details &amp; Complete Setup</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px;">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          `;
+        }
+        const cancelLink = document.getElementById('pet-cancel-link') || document.querySelector('.form-actions-bar a');
+        if (cancelLink) {
+          cancelLink.href = 'my-profile.html?setup=1';
+          cancelLink.textContent = '← Back to personal details';
+        }
       }
     }
 
     // Companion card on My Profile (my-profile.html)
     const profPetName = document.getElementById('prof-pet-name');
-    if (profPetName && pet?.name) profPetName.textContent = pet.name;
     const profPetBreed = document.getElementById('prof-pet-breed');
-    if (profPetBreed && pet) profPetBreed.textContent = `${pet.breed || 'Labrador'} · ${pet.age || '3 years'}`;
+    const profPetPhoto = document.getElementById('my-prof-pet-photo');
+    const profPetLink = document.getElementById('prof-pet-link');
+
+    if (profPetName) {
+      if (pet && pet.name) {
+        profPetName.textContent = pet.name;
+        if (profPetBreed) profPetBreed.textContent = `${pet.breed || 'Companion'}${pet.age ? ' · ' + pet.age : ''}`;
+        if (profPetPhoto && pet.photo_url) profPetPhoto.src = pet.photo_url;
+      } else if (isSetup || !pet) {
+        profPetName.textContent = 'Not added yet';
+        if (profPetBreed) profPetBreed.textContent = 'Configured in Step 2';
+        if (profPetLink) {
+          profPetLink.textContent = 'Next: Add pet profile →';
+          profPetLink.href = 'pet-profile.html?setup=1';
+        }
+      }
+    }
 
     // Overview Pet Summary Card (overview.html)
     const overviewName = document.querySelector('.pet-summary-name');
     const overviewMeta = document.querySelector('.pet-summary-meta');
     const overviewWeight = document.querySelector('.pet-stats-row .stat-value');
+    const overviewPetTitle = document.getElementById('overview-pet-name');
+    const overviewAvatar = document.querySelector('.pet-summary-flex img.pet-avatar-lg');
+
     if (overviewName) {
       if (pet) {
         overviewName.textContent = pet.name;
-        if (overviewMeta) overviewMeta.textContent = `${pet.species || 'Dog'} · ${pet.breed || 'Companion'} · ${pet.age || ''}`;
-        if (overviewWeight) overviewWeight.textContent = `${pet.weight || '28.4'} kg`;
+        if (overviewPetTitle) overviewPetTitle.textContent = pet.name;
+        if (overviewMeta) overviewMeta.textContent = `${pet.species || 'Dog'} · ${pet.breed || 'Companion'}${pet.age ? ' · ' + pet.age : ''}`;
+        if (overviewWeight) overviewWeight.textContent = `${pet.weight || '0'} kg`;
+        if (overviewAvatar && pet.photo_url) overviewAvatar.src = pet.photo_url;
       } else {
         overviewName.textContent = 'Add your companion pet';
+        if (overviewPetTitle) overviewPetTitle.textContent = 'your companion';
         if (overviewMeta) overviewMeta.textContent = 'Set up your pet’s profile to track visits, vaccinations & health records.';
         if (overviewWeight) overviewWeight.textContent = '-- kg';
         const petBtns = document.querySelector('.pet-action-btns');
@@ -929,24 +1090,49 @@ async function hydrateWorkspaceData() {
           if (!setupBanner) {
             setupBanner = document.createElement('div');
             setupBanner.id = 'setup-step-banner';
-            setupBanner.className = 'alert alert-success d-flex align-items-center justify-content-between p-3 mb-4 rounded-3 shadow-sm';
-            setupBanner.style.backgroundColor = '#FAF5EC';
-            setupBanner.style.border = '1px solid #D9C3AC';
-            setupBanner.style.color = '#482B19';
+            setupBanner.className = 'card-sand mb-4';
+            setupBanner.style.border = '2px solid #D9C3AC';
+            setupBanner.style.padding = '18px 22px';
+            setupBanner.style.borderRadius = '6px';
             setupBanner.innerHTML = `
-              <div>
-                <strong style="font-size: 0.96rem;">🎉 Welcome to Paw Care, ${pFirst}! (Step 1 of 2)</strong>
-                <div style="font-size: 0.8rem; margin-top: 2px;">Please confirm your profile details below, then continue to add your pet's details.</div>
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+                <div>
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                    <span class="badge" style="background-color: #482B19; color: #FAF5EC; font-size: 0.74rem; font-weight: 700; padding: 4px 10px;">Step 1 of 2</span>
+                    <strong style="font-size: 1.05rem; color: #482B19; font-family: var(--font-heading);">Fill Your Personal Details</strong>
+                  </div>
+                  <div style="font-size: 0.82rem; color: #5C4332; line-height: 1.5;">
+                    Welcome to Paw Care, <strong>${pFirst || 'Pet Owner'}</strong>! Please confirm your contact information below. Next, you'll set up your companion pet's profile.
+                  </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span style="font-size: 0.75rem; font-weight: 700; color: #7C5F4B;">Step 1 of 2</span>
+                  <div style="width: 100px; height: 8px; background: #E5D7C6; border-radius: 4px; overflow: hidden;">
+                    <div style="width: 50%; height: 100%; background: #482B19; border-radius: 4px;"></div>
+                  </div>
+                </div>
               </div>
-              <span class="badge bg-dark text-white px-3 py-2" style="font-size: 0.76rem;">Step 1: Your Profile</span>
             `;
             const mainCol = document.querySelector('.app-main');
             if (mainCol && mainCol.children.length > 1) {
               mainCol.insertBefore(setupBanner, mainCol.children[2]);
             }
           }
-          const saveBtn = document.querySelector('button[onclick="saveUserProfile(event)"]');
-          if (saveBtn) saveBtn.textContent = 'Save profile & set pet details →';
+          const saveBtn = document.getElementById('prof-save-btn') || document.querySelector('button[onclick="saveUserProfile(event)"]');
+          if (saveBtn) {
+            saveBtn.innerHTML = `
+              <span>Save &amp; Continue to Pet's Details</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px;">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            `;
+          }
+          const cancelLink = document.getElementById('prof-cancel-btn') || document.querySelector('.form-actions-bar a');
+          if (cancelLink) {
+            cancelLink.href = 'pet-profile.html?setup=1';
+            cancelLink.textContent = 'Skip to pet details →';
+          }
         }
       }
     }
