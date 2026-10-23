@@ -466,45 +466,161 @@
           return { success: false, error: 'Please enter your password.' };
         }
 
-        // 1. If Supabase is live, attempt Supabase Auth if identifier is an email
-        if (PawCareSupabase.isConfigured() && lowerIdent.includes('@')) {
+        // 1. If Supabase is live, attempt Supabase Auth
+        if (PawCareSupabase.isConfigured()) {
           try {
-            const { data, error } = await PawCareSupabase.client.auth.signInWithPassword({ email: lowerIdent, password });
-            if (error) {
-              console.info('Supabase remote auth notice:', error.message, '- falling back to check registered local profiles');
-            } else if (data?.user) {
-              const user = data.user;
-              // fetch profile
-              let profile = null;
-              const { data: profData } = await PawCareSupabase.client
-                .from('profiles')
-                .select('*')
-                .eq('id', user.id)
-                .single();
-              profile = profData;
+            let authEmail = lowerIdent;
+            // If identifier does not include '@', resolve username/name to registered email from Supabase profiles
+            if (!authEmail.includes('@')) {
+              try {
+                const { data: matchedProf } = await PawCareSupabase.client
+                  .from('profiles')
+                  .select('email')
+                  .or(`first_name.ilike.${lowerIdent},email.ilike.${lowerIdent}@*`)
+                  .limit(1)
+                  .maybeSingle();
+                if (matchedProf && matchedProf.email) {
+                  authEmail = matchedProf.email.toLowerCase();
+                }
+              } catch (lookupErr) {
+                console.warn('Profile username lookup notice:', lookupErr);
+              }
+            }
 
-              const fName = profile?.first_name || (role === 'vet' ? 'Anita' : 'Pet');
-              const lName = profile?.last_name || (role === 'vet' ? 'Rao' : 'Owner');
-              const fullName = profile?.full_name || `${fName} ${lName}`.trim();
+            if (authEmail.includes('@')) {
+              const { data, error } = await PawCareSupabase.client.auth.signInWithPassword({
+                email: authEmail,
+                password
+              });
 
-              const sessionData = {
-                user: {
+              if (error) {
+                console.info('Supabase remote auth notice:', error.message, '- falling back to check registered local profiles');
+              } else if (data?.user) {
+                const user = data.user;
+                const meta = user.user_metadata || {};
+
+                // Fetch remote profile from Supabase
+                let profile = null;
+                try {
+                  const { data: profData } = await PawCareSupabase.client
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', user.id)
+                    .maybeSingle();
+                  profile = profData;
+                } catch (profErr) {
+                  console.warn('Error fetching profile from Supabase:', profErr);
+                }
+
+                const fName = profile?.first_name || meta.first_name || (user.email ? user.email.split('@')[0] : (role === 'vet' ? 'Anita' : 'Pet'));
+                const lName = (profile?.last_name !== undefined && profile?.last_name !== null) ? profile.last_name : ((meta.last_name !== undefined && meta.last_name !== null) ? meta.last_name : (role === 'vet' ? 'Rao' : 'Owner'));
+                const fullName = profile?.full_name || meta.full_name || `${fName} ${lName}`.trim();
+                const userRole = profile?.role || meta.role || role || 'owner';
+
+                // Auto-heal missing profile row in Supabase so foreign key constraints on pets/appointments succeed
+                if (!profile) {
+                  try {
+                    const { data: createdProf } = await PawCareSupabase.client
+                      .from('profiles')
+                      .upsert({
+                        id: user.id,
+                        email: user.email,
+                        role: userRole,
+                        first_name: fName,
+                        last_name: lName
+                      })
+                      .select()
+                      .maybeSingle();
+                    if (createdProf) profile = createdProf;
+                  } catch (healErr) {
+                    console.warn('Auto-heal profile notice:', healErr);
+                  }
+                }
+
+                // Query pet for this owner from Supabase
+                let userPet = null;
+                try {
+                  const { data: petData, error: petErr } = await PawCareSupabase.client
+                    .from('pets')
+                    .select('*')
+                    .eq('owner_id', user.id)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+                  if (!petErr && petData) {
+                    userPet = petData;
+                  }
+                } catch (petErr) {
+                  console.warn('Error fetching pet on signIn:', petErr);
+                }
+
+                const hasPet = !!userPet;
+                const isCompleted = hasPet || userRole === 'vet' || (user.id === '00000000-0000-0000-0000-000000000001');
+
+                const sessionData = {
+                  user: {
+                    id: user.id,
+                    email: user.email,
+                    username: identifier,
+                    role: userRole,
+                    first_name: fName,
+                    last_name: lName,
+                    full_name: fullName,
+                    profile_completed: isCompleted
+                  },
+                  token: data.session?.access_token || 'supabase_token'
+                };
+
+                localStorage.setItem('paw_care_session', JSON.stringify(sessionData));
+                localStorage.setItem('pawcare_display_name', fullName);
+                localStorage.setItem('pawcare_email', user.email);
+                localStorage.setItem('pawcare_role', userRole);
+                if (profile?.phone) localStorage.setItem('pawcare_phone', profile.phone);
+
+                // Sync pet details to local storage and local store
+                const store = getLocalStore();
+                if (userPet) {
+                  localStorage.setItem('pawcare_pet_name', userPet.name);
+                  localStorage.setItem('pawcare_pet_breed', `${userPet.breed || 'Companion'}${userPet.age ? ' · ' + userPet.age : ''}`);
+                  const pIdx = store.pets.findIndex(p => p.owner_id === user.id || p.id === userPet.id);
+                  if (pIdx >= 0) {
+                    store.pets[pIdx] = { ...store.pets[pIdx], ...userPet };
+                  } else {
+                    store.pets.unshift(userPet);
+                  }
+                } else if (user.id !== '00000000-0000-0000-0000-000000000001') {
+                  localStorage.removeItem('pawcare_pet_name');
+                  localStorage.removeItem('pawcare_pet_breed');
+                }
+
+                // Sync profile into store.profiles
+                const profIdx = store.profiles.findIndex(p => p.id === user.id);
+                const localProfile = {
                   id: user.id,
-                  email: user.email,
-                  username: profile?.username || user.email.split('@')[0],
-                  role: profile?.role || role,
+                  role: userRole,
                   first_name: fName,
                   last_name: lName,
-                  full_name: fullName
-                },
-                token: data.session?.access_token || 'supabase_token'
-              };
-              localStorage.setItem('paw_care_session', JSON.stringify(sessionData));
-              localStorage.setItem('pawcare_display_name', fullName);
-              localStorage.setItem('pawcare_email', user.email);
-              localStorage.setItem('pawcare_role', sessionData.user.role);
-              PawCareSupabase.showToast(`Welcome back, ${fName}!`, 'success');
-              return { success: true, session: sessionData };
+                  full_name: fullName,
+                  email: user.email,
+                  username: identifier,
+                  password: password,
+                  phone: profile?.phone || '',
+                  address: profile?.address || '',
+                  city: profile?.city || '',
+                  postal_code: profile?.postal_code || '',
+                  member_since: profile?.member_since || 'October 2026',
+                  profile_completed: isCompleted
+                };
+                if (profIdx >= 0) {
+                  store.profiles[profIdx] = { ...store.profiles[profIdx], ...localProfile };
+                } else {
+                  store.profiles.push(localProfile);
+                }
+                setLocalStore(store);
+
+                PawCareSupabase.showToast(`Welcome back, ${fName}!`, 'success');
+                return { success: true, session: sessionData };
+              }
             }
           } catch (e) {
             console.warn('Supabase auth network error, checking local store', e);
@@ -634,13 +750,13 @@
             }
 
             if (data?.user) {
+              // Profiles schema: id, role, first_name, last_name, email (no username column, full_name is generated)
               await PawCareSupabase.client.from('profiles').upsert({
                 id: data.user.id,
                 email: lowerIdent,
                 role: role,
                 first_name: firstName,
-                last_name: lastName,
-                username: identifier
+                last_name: lastName
               });
             }
             const hasSession = !!data?.session;
@@ -732,6 +848,9 @@
         localStorage.removeItem('pawcare_display_name');
         localStorage.removeItem('pawcare_email');
         localStorage.removeItem('pawcare_role');
+        localStorage.removeItem('pawcare_phone');
+        localStorage.removeItem('pawcare_pet_name');
+        localStorage.removeItem('pawcare_pet_breed');
         localStorage.removeItem('pawcare_last_appointment');
         PawCareSupabase.showToast('Signed out of Paw Care.', 'info');
         setTimeout(() => {
@@ -782,7 +901,20 @@
               .order('created_at', { ascending: false })
               .limit(1)
               .maybeSingle();
-            if (!error && data) return data;
+            if (!error && data) {
+              // Cache into store.pets and localStorage for cross-page persistence
+              const store = getLocalStore();
+              const pIdx = store.pets.findIndex(p => p.owner_id === targetOwnerId || p.id === data.id);
+              if (pIdx >= 0) {
+                store.pets[pIdx] = { ...store.pets[pIdx], ...data };
+              } else {
+                store.pets.unshift(data);
+              }
+              setLocalStore(store);
+              localStorage.setItem('pawcare_pet_name', data.name);
+              localStorage.setItem('pawcare_pet_breed', `${data.breed || 'Companion'}${data.age ? ' · ' + data.age : ''}`);
+              return data;
+            }
           } catch (e) {
             console.warn('Error fetching owner pet from Supabase', e);
           }
@@ -824,7 +956,7 @@
         const defaultPhoto = petSpecies === 'Cat' ? 'assets/cat.jpg' : 'assets/pdf_img_4.jpeg';
         const petPhoto = petData.photo_url || (existingPet ? existingPet.photo_url : defaultPhoto);
 
-        const fullPetRecord = {
+        let fullPetRecord = {
           id: petId,
           owner_id: targetOwnerId,
           name: petName,
@@ -840,17 +972,55 @@
           photo_url: petPhoto
         };
 
-        if (PawCareSupabase.isConfigured()) {
+        if (PawCareSupabase.isConfigured() && targetOwnerId && targetOwnerId !== '00000000-0000-0000-0000-000000000001') {
           try {
+            // 1. Ensure owner exists in profiles table so foreign key constraint pets_owner_id_fkey is satisfied
+            const { data: existProf } = await PawCareSupabase.client
+              .from('profiles')
+              .select('id')
+              .eq('id', targetOwnerId)
+              .maybeSingle();
+
+            if (!existProf && currentUser) {
+              const pFirst = currentUser.first_name || (currentUser.full_name ? currentUser.full_name.split(' ')[0] : 'Pet');
+              const pLast = currentUser.last_name !== undefined ? currentUser.last_name : '';
+              await PawCareSupabase.client.from('profiles').upsert({
+                id: targetOwnerId,
+                email: currentUser.email || '',
+                role: currentUser.role || 'owner',
+                first_name: pFirst,
+                last_name: pLast
+              });
+            }
+
+            // 2. Check if pet already exists in Supabase for this owner to reuse the same ID
+            const { data: existRemotePet } = await PawCareSupabase.client
+              .from('pets')
+              .select('id')
+              .eq('owner_id', targetOwnerId)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            if (existRemotePet && existRemotePet.id) {
+              fullPetRecord.id = existRemotePet.id;
+            }
+
+            // 3. Upsert pet record into Supabase
             const { data, error } = await PawCareSupabase.client
               .from('pets')
               .upsert(fullPetRecord)
-              .select();
-            if (!error && data) {
+              .select()
+              .maybeSingle();
+
+            if (error) {
+              console.error('Supabase pet save error:', error);
+            } else if (data) {
+              fullPetRecord = data;
               PawCareSupabase.showToast('Pet profile synced to Supabase!', 'success');
             }
           } catch (e) {
-            console.warn('Supabase pet save failed, stored locally', e);
+            console.warn('Supabase pet save exception, stored locally', e);
           }
         }
 
@@ -909,9 +1079,12 @@
               .update(updates)
               .eq('id', id)
               .select();
-            if (!error) {
+            if (!error && data && data.length > 0) {
+              const updatedPet = data[0];
+              localStorage.setItem('pawcare_pet_name', updatedPet.name);
+              localStorage.setItem('pawcare_pet_breed', `${updatedPet.breed || 'Companion'}${updatedPet.age ? ' · ' + updatedPet.age : ''}`);
               PawCareSupabase.showToast('Pet profile updated in Supabase!', 'success');
-              return data;
+              return updatedPet;
             }
           } catch (e) {
             console.warn('Supabase pet update failed, saving locally', e);
@@ -925,6 +1098,8 @@
           store.pets[0] = { ...store.pets[0], ...updates };
         }
         setLocalStore(store);
+        if (updates.name) localStorage.setItem('pawcare_pet_name', updates.name);
+        if (updates.breed) localStorage.setItem('pawcare_pet_breed', `${updates.breed}${updates.age ? ' · ' + updates.age : ''}`);
         PawCareSupabase.showToast('Pet profile saved successfully!', 'success');
         return store.pets[0];
       }
@@ -936,10 +1111,31 @@
         const currentUser = PawCareSupabase.auth.getCurrentUser();
         const targetId = id || currentUser?.id;
 
-        if (PawCareSupabase.isConfigured() && targetId) {
+        if (PawCareSupabase.isConfigured() && targetId && targetId !== '00000000-0000-0000-0000-000000000001') {
           try {
-            const { data, error } = await PawCareSupabase.client.from('profiles').select('*').eq('id', targetId).single();
-            if (!error && data) return data;
+            const { data, error } = await PawCareSupabase.client
+              .from('profiles')
+              .select('*')
+              .eq('id', targetId)
+              .maybeSingle();
+
+            if (!error && data) {
+              const store = getLocalStore();
+              const pIdx = store.profiles.findIndex(p => p.id === data.id);
+              if (pIdx >= 0) {
+                store.profiles[pIdx] = { ...store.profiles[pIdx], ...data };
+              } else {
+                store.profiles.push(data);
+              }
+              setLocalStore(store);
+
+              const full = data.full_name || `${data.first_name || ''} ${data.last_name || ''}`.trim();
+              if (full) localStorage.setItem('pawcare_display_name', full);
+              if (data.email) localStorage.setItem('pawcare_email', data.email);
+              if (data.phone) localStorage.setItem('pawcare_phone', data.phone);
+
+              return data;
+            }
           } catch (e) {
             console.warn('Error fetching profile from Supabase', e);
           }
@@ -950,14 +1146,18 @@
           if (found) return found;
         }
 
-        // If this is an authenticated user but not yet in local profiles list, generate their profile record
+        // If this is an authenticated user but not yet in local profiles list, generate and auto-heal their profile record
         if (currentUser) {
+          const fName = currentUser.first_name || (currentUser.full_name ? currentUser.full_name.split(' ')[0] : 'Pet');
+          const lName = (currentUser.last_name !== undefined && currentUser.last_name !== null) ? currentUser.last_name : (currentUser.full_name ? currentUser.full_name.split(' ').slice(1).join(' ') : 'Owner');
+          const full = currentUser.full_name || `${fName} ${lName}`.trim();
+
           const newProfile = {
             id: currentUser.id,
             role: currentUser.role || 'owner',
-            first_name: currentUser.first_name || 'Pet',
-            last_name: currentUser.last_name || 'Owner',
-            full_name: currentUser.full_name || `${currentUser.first_name || 'Pet'} ${currentUser.last_name || 'Owner'}`.trim(),
+            first_name: fName,
+            last_name: lName,
+            full_name: full,
             email: currentUser.email || '',
             username: currentUser.username || currentUser.email,
             phone: '',
@@ -968,6 +1168,21 @@
           };
           store.profiles.push(newProfile);
           setLocalStore(store);
+
+          if (PawCareSupabase.isConfigured() && currentUser.id && currentUser.id !== '00000000-0000-0000-0000-000000000001') {
+            try {
+              PawCareSupabase.client.from('profiles').upsert({
+                id: currentUser.id,
+                email: currentUser.email || '',
+                role: currentUser.role || 'owner',
+                first_name: fName,
+                last_name: lName
+              });
+            } catch (healErr) {
+              console.warn('Profile auto-create notice:', healErr);
+            }
+          }
+
           return newProfile;
         }
 
@@ -986,14 +1201,31 @@
         const currentUser = PawCareSupabase.auth.getCurrentUser();
         const targetId = id || currentUser?.id || 'usr_default';
 
-        if (PawCareSupabase.isConfigured() && targetId) {
+        if (PawCareSupabase.isConfigured() && targetId && targetId !== 'usr_default' && targetId !== '00000000-0000-0000-0000-000000000001') {
           try {
-            const { data, error } = await PawCareSupabase.client
-              .from('profiles')
-              .upsert({ id: targetId, ...updates })
-              .select();
-            if (!error) {
-              PawCareSupabase.showToast('Profile updated in Supabase!', 'success');
+            // Filter to ONLY valid PostgreSQL columns in public.profiles:
+            // id, role, first_name, last_name, email, phone, address, city, postal_code, member_since, avatar_url
+            // Do NOT include generated full_name column (error 428C9) or non-existent columns like username/profile_completed (PGRST204)
+            const allowedCols = ['role', 'first_name', 'last_name', 'email', 'phone', 'address', 'city', 'postal_code', 'member_since', 'avatar_url'];
+            const cleanPayload = { id: targetId };
+            for (const col of allowedCols) {
+              if (updates[col] !== undefined) {
+                cleanPayload[col] = updates[col];
+              }
+            }
+
+            if (Object.keys(cleanPayload).length > 1) {
+              const { data, error } = await PawCareSupabase.client
+                .from('profiles')
+                .upsert(cleanPayload)
+                .select()
+                .maybeSingle();
+
+              if (error) {
+                console.warn('Supabase profile update warning:', error);
+              } else if (data) {
+                PawCareSupabase.showToast('Profile updated in Supabase!', 'success');
+              }
             }
           } catch (e) {
             console.warn('Supabase profile update failed, saving locally', e);

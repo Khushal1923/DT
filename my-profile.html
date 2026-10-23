@@ -258,6 +258,13 @@
     var petBreed  = localStorage.getItem('pawcare_pet_breed')     || (isDemo ? 'Labrador · 3 years' : '');
     var phone     = localStorage.getItem('pawcare_phone')         || '';
 
+    var store     = (window.PawCareSupabase && window.PawCareSupabase.getLocalStore) ? window.PawCareSupabase.getLocalStore() : null;
+    var userPet   = (store && user) ? (store.pets || []).find(function(p) { return p.owner_id === user.id; }) : null;
+    if (userPet) {
+      if (!petName) petName = userPet.name;
+      if (!petBreed) petBreed = (userPet.breed || 'Companion') + (userPet.age ? ' · ' + userPet.age : '');
+    }
+
     var parts     = fullName.trim().split(/\s+/);
     var firstName = (user && user.first_name) || parts[0] || '';
     var lastName  = (user && user.last_name !== undefined) ? user.last_name : (parts.slice(1).join(' ') || '');
@@ -278,7 +285,10 @@
     var petLinkEl  = document.getElementById('prof-pet-link');
     if (petNameEl)  petNameEl.textContent  = petName || 'Not added yet';
     if (petBreedEl) petBreedEl.textContent = petBreed || 'Configured in Step 2';
-    if (!petName && petLinkEl) {
+    if (petName && petLinkEl) {
+      petLinkEl.textContent = 'View pet profile';
+      petLinkEl.href = 'pet-profile.html';
+    } else if (!petName && petLinkEl) {
       petLinkEl.textContent = 'Next: Add pet profile →';
       petLinkEl.href = 'pet-profile.html?setup=1';
     }

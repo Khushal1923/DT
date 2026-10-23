@@ -625,11 +625,17 @@ async function savePetProfile(e) {
   const cardBadge = document.querySelector('.grid-profile-layout .card .badge');
   if (cardBadge) cardBadge.textContent = `${updates.species} · ${updates.breed}`;
 
-  window.PawCareSupabase?.showToast(`🎉 Profile created! Welcome ${updates.name} to Paw Care!`, 'success');
+  const params = new URLSearchParams(window.location.search);
+  const isSetup = params.get('setup') === '1';
 
-  setTimeout(() => {
-    window.location.href = 'overview.html';
-  }, 400);
+  if (isSetup) {
+    window.PawCareSupabase?.showToast(`🎉 Setup complete! Welcome ${updates.name} to Paw Care!`, 'success');
+    setTimeout(() => {
+      window.location.href = 'overview.html';
+    }, 400);
+  } else {
+    window.PawCareSupabase?.showToast(`🎉 Pet details saved successfully!`, 'success');
+  }
 }
 
 // Save User Profile for Current User
@@ -847,7 +853,10 @@ async function hydrateWorkspaceData() {
         if (allergiesEl) allergiesEl.value = pet.allergies || '';
         if (illnessEl) illnessEl.value = pet.past_illness || '';
         if (speciesEl && pet.species) speciesEl.value = pet.species;
-      } else if (isSetup) {
+        // Keep localStorage helper keys in sync
+        localStorage.setItem('pawcare_pet_name', pet.name);
+        if (pet.breed) localStorage.setItem('pawcare_pet_breed', `${pet.breed}${pet.age ? ' · ' + pet.age : ''}`);
+      } else if (isSetup || (user && user.role === 'owner' && user.id !== '00000000-0000-0000-0000-000000000001')) {
         // Clear default placeholder text for brand new users
         if (nameEl) {
           nameEl.value = '';
@@ -881,14 +890,15 @@ async function hydrateWorkspaceData() {
       const petCardBadge = document.getElementById('pet-card-badge') || document.querySelector('.grid-profile-layout .card .badge');
       const petCardPhoto = document.getElementById('pet-card-photo') || document.querySelector('.grid-profile-layout .card img');
 
-      if (petCardName) petCardName.textContent = pet ? pet.name : (isSetup ? 'Your companion' : 'Bruno');
-      if (petCardBadge) petCardBadge.textContent = pet ? `${pet.species || 'Dog'} · ${pet.breed || 'Companion'}` : (isSetup ? 'New companion' : 'Dog · Labrador');
+      const isNonDemoNew = isSetup || (user && user.role === 'owner' && user.id !== '00000000-0000-0000-0000-000000000001');
+      if (petCardName) petCardName.textContent = pet ? pet.name : (isNonDemoNew ? 'Your companion' : 'Bruno');
+      if (petCardBadge) petCardBadge.textContent = pet ? `${pet.species || 'Dog'} · ${pet.breed || 'Companion'}` : (isNonDemoNew ? 'New companion' : 'Dog · Labrador');
       if (petCardPhoto && pet?.photo_url) petCardPhoto.src = pet.photo_url;
 
       // Header title & subtitle
       const petTitle = document.getElementById('pet-title-name');
       const petSub = document.getElementById('pet-subtitle-name');
-      if (isSetup && !pet) {
+      if (!pet && isNonDemoNew) {
         const pageTitle = document.querySelector('.page-title');
         if (pageTitle) pageTitle.innerHTML = 'Add your <span id="pet-title-name">companion</span>’s details';
         const pageSub = document.querySelector('.page-subtitle');
@@ -988,6 +998,10 @@ async function hydrateWorkspaceData() {
         profPetName.textContent = pet.name;
         if (profPetBreed) profPetBreed.textContent = `${pet.breed || 'Companion'}${pet.age ? ' · ' + pet.age : ''}`;
         if (profPetPhoto && pet.photo_url) profPetPhoto.src = pet.photo_url;
+        if (profPetLink) {
+          profPetLink.textContent = 'View pet profile';
+          profPetLink.href = 'pet-profile.html';
+        }
       } else if (isSetup || !pet) {
         profPetName.textContent = 'Not added yet';
         if (profPetBreed) profPetBreed.textContent = 'Configured in Step 2';
